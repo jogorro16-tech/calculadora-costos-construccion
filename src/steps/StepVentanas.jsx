@@ -5,7 +5,8 @@ import Nav from "../components/Nav";
 import NoMeQuedaClaro from "../components/NoMeQuedaClaro";
 
 export default function StepVentanas({ data, set, onBack, onNext, dudas, togDuda }) {
-  const ok = !!data.vanos_amplitud && !!data.canceleria_calidad;
+  const duda = (dudas || []).includes("Ventanas y cancelería");
+  const ok = (!!data.vanos_amplitud && !!data.canceleria_calidad) || duda;
 
   return (
     <>

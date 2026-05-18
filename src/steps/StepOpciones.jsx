@@ -15,7 +15,7 @@ export default function StepOpciones({ opciones, dataKey, data, set, onBack, onN
         ))}
       </div>
       {stepTitle && <NoMeQuedaClaro stepTitle={stepTitle} dudas={dudas} togDuda={togDuda} />}
-      <Nav onBack={onBack} onNext={onNext} ok={!!data[dataKey]} label={navLabel} />
+      <Nav onBack={onBack} onNext={onNext} ok={!!data[dataKey] || (dudas || []).includes(stepTitle)} label={navLabel} />
     </>
   );
 }

@@ -5,7 +5,8 @@ import Nav from "../components/Nav";
 import NoMeQuedaClaro from "../components/NoMeQuedaClaro";
 
 export default function StepCarpinteria({ data, set, onBack, onNext, dudas, togDuda }) {
-  const ok = !!data.puertas && !!data.closets;
+  const duda = (dudas || []).includes("Carpintería y puertas");
+  const ok = (!!data.puertas && !!data.closets) || duda;
 
   return (
     <>
