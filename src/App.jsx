@@ -10,6 +10,7 @@ import {
 import { calcTotal } from "./utils/calcTotal";
 import ProgressBar from "./components/ProgressBar";
 import StepHead from "./components/StepHead";
+import LogoMarca from "./components/LogoMarca";
 import StepProyecto from "./steps/StepProyecto";
 import StepSuperficie from "./steps/StepSuperficie";
 import StepOpciones from "./steps/StepOpciones";
@@ -72,12 +73,13 @@ export default function App() {
     <div style={{ minHeight: "100vh", background: T.bg, fontFamily: FB, color: T.ink }}>
 
       {/* Topbar */}
-      <div style={{ background: T.surface, borderBottom: `1px solid ${T.hairline}`, padding: "13px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+      <div className="no-print" style={{ background: T.surface, borderBottom: `1px solid ${T.hairline}`, padding: "13px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 22, height: 22, background: T.moss, flexShrink: 0 }} />
+          <LogoMarca height={30} color={T.moss} />
+          <div style={{ width: 1, height: 24, background: T.hairline, flexShrink: 0 }} />
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: T.ink, fontFamily: FD, letterSpacing: "0.02em" }}>Calculadora de Costos de Construcción</div>
-            <div style={{ fontSize: 9, color: T.inkMuted, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: FB }}>Querétaro · MXN · 2025</div>
+            <div style={{ fontSize: 9, color: T.inkMuted, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: FB }}>Estudio Landa · Querétaro · 2025</div>
           </div>
         </div>
         {step < TOTAL && calc?.total > 0 && (
@@ -89,8 +91,8 @@ export default function App() {
       </div>
 
       <div ref={top} style={{ maxWidth: 580, margin: "0 auto", padding: "28px 16px 110px" }}>
-        {step < TOTAL && <ProgressBar step={step} />}
-        {step < TOTAL && <StepHead step={step} title={si.title} sub={si.sub} />}
+        {step < TOTAL && <div className="no-print"><ProgressBar step={step} /></div>}
+        {step < TOTAL && <div className="no-print"><StepHead step={step} title={si.title} sub={si.sub} /></div>}
 
         {step === 0  && <StepProyecto  data={data} set={set} onNext={next} />}
         {step === 1  && <StepSuperficie data={data} set={set} onBack={back} onNext={next} />}
@@ -127,6 +129,11 @@ export default function App() {
         input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#3A5436;margin-top:-7px;cursor:pointer;}
         button,a,input{font-family:inherit;}
         button:hover{filter:brightness(0.95);}
+        @media print{
+          .no-print{display:none!important;}
+          *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+          body{background:#F7F4EF!important;}
+        }
       `}</style>
     </div>
   );

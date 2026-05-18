@@ -1,5 +1,6 @@
 import { T, FD, FB, FM, fmt, WA, EMAIL } from "../data/tokens";
 import { PROYECTOS } from "../data/proyectos";
+import LogoMarca from "../components/LogoMarca";
 import {
   TERRENO, COMPLEJIDAD, SERVICIOS, ESPACIOS, TECHOS,
   BIOCLIMATICA, FACHADA, PUERTAS, CLOSETS, VANOS_AMPLITUD, CANCELERIA_CALIDAD,
@@ -74,12 +75,18 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
 
   return (
     <>
-      <div style={{ marginBottom: 24, display: "flex", gap: 16, alignItems: "flex-start" }}>
-        <div style={{ fontFamily: FD, fontSize: 44, fontWeight: 700, color: T.hairline, lineHeight: 1, letterSpacing: "-0.04em", flexShrink: 0, marginTop: -2 }}>✦</div>
-        <div style={{ paddingTop: 4 }}>
-          <h2 style={{ margin: "0 0 3px", fontSize: 18, fontWeight: 600, fontFamily: FD, color: T.ink }}>Tu presupuesto estimado</h2>
-          <p style={{ margin: 0, fontSize: 12, color: T.inkSub, fontFamily: FB }}>Basado en costos reales de Querétaro 2025</p>
+      {/* Encabezado con logo */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${T.hairline}` }}>
+          <LogoMarca height={34} color={T.ink} />
+          <div style={{ width: 1, height: 28, background: T.hairline }} />
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T.ink, fontFamily: FD, letterSpacing: "0.12em", textTransform: "uppercase" }}>Estudio Landa</div>
+            <div style={{ fontSize: 9, color: T.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: FB }}>Arquitectura · Interiorismo · Diseño</div>
+          </div>
         </div>
+        <h2 style={{ margin: "0 0 3px", fontSize: 18, fontWeight: 600, fontFamily: FD, color: T.ink }}>Tu presupuesto estimado</h2>
+        <p style={{ margin: 0, fontSize: 12, color: T.inkSub, fontFamily: FB }}>Basado en costos reales de Querétaro 2025</p>
       </div>
 
       {/* Hero */}
@@ -228,8 +235,17 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
         ))}
       </div>
 
+      {/* Guardar como PDF */}
+      <button
+        onClick={() => window.print()}
+        className="no-print"
+        style={{ width: "100%", padding: "14px", border: `1px solid ${T.moss}`, background: T.mossLight, color: T.moss, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: FB, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 2 }}
+      >
+        Guardar como PDF
+      </button>
+
       {/* Enviar */}
-      <div style={{ background: T.surface, border: `1px solid ${T.hairline}`, borderLeft: `3px solid ${T.moss}`, padding: "18px 20px", marginBottom: 2 }}>
+      <div className="no-print" style={{ background: T.surface, border: `1px solid ${T.hairline}`, borderLeft: `3px solid ${T.moss}`, padding: "18px 20px", marginBottom: 2 }}>
         <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 12, color: T.ink, fontFamily: FD }}>Enviar selecciones al arquitecto</p>
         <p style={{ margin: "0 0 14px", fontSize: 11, color: T.inkSub, fontFamily: FB, lineHeight: 1.6 }}>Se enviará el resumen completo con todas tus elecciones.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
@@ -248,8 +264,8 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
         </div>
       </div>
 
-      <button onClick={onReset} style={{ width: "100%", padding: "12px", border: `1px solid ${T.hairline}`, background: "transparent", color: T.inkSub, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: FB, letterSpacing: "0.04em", marginTop: 2 }}>
-        🔄 Nueva cotización
+      <button onClick={onReset} className="no-print" style={{ width: "100%", padding: "12px", border: `1px solid ${T.hairline}`, background: "transparent", color: T.inkSub, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: FB, letterSpacing: "0.04em", marginTop: 2 }}>
+        Nueva cotización
       </button>
     </>
   );
