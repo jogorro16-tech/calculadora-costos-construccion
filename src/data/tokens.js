@@ -14,3 +14,4 @@ export const fmt = n =>
 
 export const WA = "524422264948";
 export const EMAIL = "jogorro16@gmail.com";
+export const VERSION = "2025.1";
