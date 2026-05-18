@@ -9,6 +9,4 @@ export const EXTRAS = [
   {id:"alberca",         icon:"🏊", label:"Alberca o jacuzzi",                     desc:"Área acuática con acabados de calidad. Medida estándar de referencia: 8×4 m.", costo_fijo:280000},
   {id:"seguridad",       icon:"🔒", label:"Sistema de seguridad CCTV",             desc:"Cámaras IP, alarma perimetral y control de acceso.", costo_fijo:35000},
   {id:"smart",           icon:"📱", label:"Domótica básica",                       desc:"Iluminación, cortinas y clima controlados desde el celular o por voz.", costo_fijo:65000},
-  {id:"cochera_1",       icon:"🚗", label:"Cochera techada — 1 vehículo",          desc:"Estructura techada para cubrir 1 automóvil. Aproximadamente 15 m² techados.", costo_fijo:55000},
-  {id:"cochera_2",       icon:"🚘", label:"Cochera techada — 2 vehículos",         desc:"Estructura techada para cubrir 2 automóviles. Aproximadamente 30 m² techados.", costo_fijo:95000},
 ];
