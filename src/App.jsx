@@ -28,23 +28,23 @@ const INIT = {
 
 // Mapa de pasos a datos y opciones
 const PASOS_OPCIONES = [
-  { step: 2,  key: "terreno",     opts: TERRENO,     pregunta: "La condición del terreno afecta directamente la cimentación y el costo. Sé lo más preciso posible." },
-  { step: 3,  key: "complejidad", opts: COMPLEJIDAD,  pregunta: "La forma arquitectónica impacta en la estructura, cimbra y coordinación de obra." },
-  { step: 4,  key: "servicios",   opts: SERVICIOS,    pregunta: "Indica qué servicios tienes disponibles frente al terreno. Cada uno faltante implica obra de introducción." },
-  { step: 5,  key: "espacios",    opts: ESPACIOS,     pregunta: "La distribución define estructura, circulaciones y la experiencia de habitar el espacio." },
-  { step: 6,  key: "techos",      opts: TECHOS,       pregunta: "El tipo de cubierta afecta la estructura, la impermeabilización y el aspecto visual del proyecto." },
-  { step: 7,  key: "bioclimatica",opts: BIOCLIMATICA, pregunta: "Las estrategias bioclimáticas definen qué tan confortable es tu espacio sin depender de equipos mecánicos." },
-  { step: 8,  key: "fachada",     opts: FACHADA,      pregunta: "La fachada define la identidad visual exterior y el mantenimiento a futuro del proyecto." },
-  { step: 9,  key: "carpinteria", opts: CARPINTERIA,  pregunta: "Las puertas interiores definen el carácter espacial — un detalle que muchos subestiman." },
-  { step: 10, key: "ventanas",    opts: VENTANAS,     pregunta: "La relación entre muros y vanos define luminosidad, ventilación y conexión con el exterior." },
-  { step: 11, key: "aplanados",   opts: APLANADOS,    pregunta: "Define el material y acabado de tus muros según zona. La textura define el ambiente interior." },
-  { step: 12, key: "lambrines",   opts: LAMBRINES,    pregunta: "Paneles de carpintería en muros — dan calidez y pueden dividir o acentuar espacios clave." },
-  { step: 13, key: "plafones",    opts: PLAFONES,     pregunta: "El plafón define la altura visual del espacio y es donde vive la iluminación integrada." },
-  { step: 14, key: "pisos",       opts: PISOS,        pregunta: "El piso es el elemento de mayor superficie visual. Elige según tus prioridades y presupuesto." },
-  { step: 15, key: "cocina",      opts: COCINA,       pregunta: "Los gabinetes y acabados de cocina son los elementos más usados en el día a día." },
-  { step: 16, key: "banos",       opts: BANOS,        pregunta: "Los baños son espacios donde los acabados se perciben más de cerca. Define tu nivel de confort." },
-  { step: 17, key: "electricos",  opts: ELECTRICOS,   pregunta: "Apagadores, contactos y luminarias definen la experiencia eléctrica. Se decide en obra — no después." },
-  { step: 18, key: "urgencia",    opts: URGENCIA,     pregunta: "El plazo afecta la mano de obra. Construir más rápido implica cuadrillas adicionales." },
+  { step: 2,  key: "terreno",     opts: TERRENO,     stepTitle: "El terreno",               pregunta: "La condición del terreno afecta directamente la cimentación y el costo total. Sé lo más preciso posible." },
+  { step: 3,  key: "complejidad", opts: COMPLEJIDAD,  stepTitle: "Concepto arquitectónico",  pregunta: "¿Cómo imaginas el proyecto en cuanto a forma y volumetría? Esto impacta en la estructura y complejidad de construcción." },
+  { step: 4,  key: "servicios",   opts: SERVICIOS,    stepTitle: "Servicios disponibles",    pregunta: "Indica qué servicios tienes disponibles frente al terreno. Cada servicio que falte implica trabajo e inversión adicional." },
+  { step: 5,  key: "espacios",    opts: ESPACIOS,     stepTitle: "Espacios y distribución",  pregunta: "¿Cómo quieres que se organice el espacio interior? Esto define la estructura, las circulaciones y cómo se vive el proyecto." },
+  { step: 6,  key: "techos",      opts: TECHOS,       stepTitle: "Techos y cubiertas",       pregunta: "El tipo de cubierta define la forma del proyecto, la impermeabilización y el nivel de mantenimiento a futuro." },
+  { step: 7,  key: "bioclimatica",opts: BIOCLIMATICA, stepTitle: "Confort y clima",          pregunta: "Estas estrategias definen qué tan cómodo se sentirá el espacio durante el año, y cuánto dependerá del aire acondicionado o la calefacción." },
+  { step: 8,  key: "fachada",     opts: FACHADA,      stepTitle: "Fachada y exteriores",     pregunta: "Los materiales de fachada definen la imagen del proyecto y su nivel de mantenimiento a largo plazo." },
+  { step: 9,  key: "carpinteria", opts: CARPINTERIA,  stepTitle: "Carpintería y puertas",    pregunta: "Las puertas interiores son un detalle que muchos subestiman — definen el carácter y la calidad percibida del espacio." },
+  { step: 10, key: "ventanas",    opts: VENTANAS,     stepTitle: "Ventanas y vanos",         pregunta: "La cantidad y tamaño de ventanas define la luminosidad, la ventilación natural y la conexión visual con el exterior." },
+  { step: 11, key: "aplanados",   opts: APLANADOS,    stepTitle: "Acabados en muros",        pregunta: "El acabado de las paredes interiores define la textura, el ambiente y la personalidad de cada espacio." },
+  { step: 12, key: "lambrines",   opts: LAMBRINES,    stepTitle: "Detalles en muros",        pregunta: "Recubrimientos o paneles adicionales en muros interiores — pueden ser decorativos o protectores." },
+  { step: 13, key: "plafones",    opts: PLAFONES,     stepTitle: "Plafones y techos interiores", pregunta: "El acabado del techo interior define la altura visual del espacio y es donde vive la iluminación integrada." },
+  { step: 14, key: "pisos",       opts: PISOS,        stepTitle: "Pisos",                    pregunta: "El piso es el elemento de mayor superficie visible. Su elección define el carácter del espacio y el presupuesto de acabados." },
+  { step: 15, key: "cocina",      opts: COCINA,       stepTitle: "Cocina",                   pregunta: "Los gabinetes, herrajes y cubiertas de cocina son los elementos de mayor uso diario. La calidad aquí se nota siempre." },
+  { step: 16, key: "banos",       opts: BANOS,        stepTitle: "Baños",                    pregunta: "En los baños los acabados se perciben de cerca. Define el nivel de confort que quieres para tu proyecto." },
+  { step: 17, key: "electricos",  opts: ELECTRICOS,   stepTitle: "Eléctrico y luminarias",   pregunta: "Apagadores, contactos y luminarias se deciden durante la obra — cambiarlos después es costoso." },
+  { step: 18, key: "urgencia",    opts: URGENCIA,     stepTitle: "Plazo de obra",            pregunta: "El tiempo de construcción afecta la mano de obra. Construir más rápido requiere cuadrillas adicionales." },
 ];
 
 export default function App() {
@@ -102,6 +102,7 @@ export default function App() {
             onBack={back}
             onNext={next}
             pregunta={pasoOpciones.pregunta}
+            stepTitle={pasoOpciones.stepTitle}
           />
         )}
         {step === 19 && <StepExtras data={data} tog={tog} onBack={back} onNext={next} />}

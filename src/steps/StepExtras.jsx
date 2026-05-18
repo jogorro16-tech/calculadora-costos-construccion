@@ -2,6 +2,7 @@ import { T, FB, FM, fmt } from "../data/tokens";
 import { EXTRAS } from "../data/extras";
 import Toggle from "../components/Toggle";
 import Nav from "../components/Nav";
+import NoMeQuedaClaro from "../components/NoMeQuedaClaro";
 
 export default function StepExtras({ data, tog, onBack, onNext }) {
   const totalExtras = data.extras.reduce((a, id) => {
@@ -12,7 +13,7 @@ export default function StepExtras({ data, tog, onBack, onNext }) {
   return (
     <>
       <p style={{ margin: "0 0 18px", fontSize: 12, color: T.inkSub, lineHeight: 1.75, fontFamily: FB }}>
-        Estos son costos fijos estimados para Querétaro 2025. Selecciona lo que quieras incluir.
+        Costos fijos estimados para Querétaro 2025. Selecciona lo que quieras incluir — puedes no elegir nada.
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, marginBottom: 8 }}>
         {EXTRAS.map(e => (
@@ -24,6 +25,7 @@ export default function StepExtras({ data, tog, onBack, onNext }) {
           ? "Puedes continuar sin seleccionar nada."
           : `${data.extras.length} extra${data.extras.length > 1 ? "s" : ""} seleccionado${data.extras.length > 1 ? "s" : ""} — ${fmt(totalExtras)}`}
       </p>
+      <NoMeQuedaClaro stepTitle="Extras y servicios adicionales" />
       <Nav onBack={onBack} onNext={onNext} label="Ver mi presupuesto →" ok />
     </>
   );

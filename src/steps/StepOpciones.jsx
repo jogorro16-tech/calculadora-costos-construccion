@@ -1,8 +1,9 @@
 import Card from "../components/Card";
 import Nav from "../components/Nav";
+import NoMeQuedaClaro from "../components/NoMeQuedaClaro";
 import { T, FB } from "../data/tokens";
 
-export default function StepOpciones({ opciones, dataKey, data, set, onBack, onNext, pregunta, navLabel }) {
+export default function StepOpciones({ opciones, dataKey, data, set, onBack, onNext, pregunta, stepTitle, navLabel }) {
   return (
     <>
       {pregunta && (
@@ -13,6 +14,7 @@ export default function StepOpciones({ opciones, dataKey, data, set, onBack, onN
           <Card key={o.id} opt={o} selected={data[dataKey] === o.id} onClick={() => set(dataKey, o.id)} />
         ))}
       </div>
+      {stepTitle && <NoMeQuedaClaro stepTitle={stepTitle} />}
       <Nav onBack={onBack} onNext={onNext} ok={!!data[dataKey]} label={navLabel} />
     </>
   );
