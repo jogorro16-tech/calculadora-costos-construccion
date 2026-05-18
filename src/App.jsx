@@ -129,6 +129,9 @@ export default function App() {
         input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#3A5436;margin-top:-7px;cursor:pointer;}
         button,a,input{font-family:inherit;}
         button:hover{filter:brightness(0.95);}
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+        input[type=number]{-moz-appearance:textfield;}
         @media print{
           .no-print{display:none!important;}
           *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}

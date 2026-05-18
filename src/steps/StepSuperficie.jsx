@@ -29,8 +29,9 @@ export default function StepSuperficie({ data, set, onBack, onNext }) {
         <p style={{ margin: "0 0 16px", fontSize: 12, color: T.inkSub, lineHeight: 1.75, fontFamily: FB }}>
           Incluye <strong>todas las áreas techadas</strong>: cuartos, pasillos, baños, cocina, cochera techada. No cuentes jardines o patios descubiertos.
         </p>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 8 }}>
+        {/* Número editable */}
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 6 }}>
             <input
               type="number" min={40} max={1500} value={data.m2}
               onChange={e => {
@@ -46,8 +47,8 @@ export default function StepSuperficie({ data, set, onBack, onNext }) {
             />
             <span style={{ fontSize: 14, color: T.inkMuted, fontFamily: FB, letterSpacing: "0.08em", textTransform: "uppercase", paddingBottom: 8 }}>m²</span>
           </div>
-          <div style={{ fontSize: 10, color: T.inkMuted, marginTop: 6, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: FB }}>
-            Escribe el número o mueve el control
+          <div style={{ fontSize: 10, color: T.inkMuted, marginTop: 8, fontFamily: FB }}>
+            Toca el número para editarlo directamente
           </div>
           {baseM2 > 0 && (
             <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: T.moss, fontFamily: FM }}>
@@ -58,10 +59,41 @@ export default function StepSuperficie({ data, set, onBack, onNext }) {
             <div style={{ fontSize: 9, color: T.inkMuted, fontFamily: FB, letterSpacing: "0.06em" }}>estimado base antes de decisiones de diseño</div>
           )}
         </div>
-        <input type="range" min={40} max={1500} step={5} value={data.m2}
-          onChange={e => set("m2", Number(e.target.value))}
-          style={{ width: "100%", accentColor: T.moss, cursor: "pointer" }} />
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: T.inkMuted, marginTop: 4, fontFamily: FM }}>
+
+        {/* Slider personalizado */}
+        {(() => {
+          const pct = ((data.m2 - 40) / (1500 - 40)) * 100;
+          return (
+            <div style={{ position: "relative", height: 44, display: "flex", alignItems: "center", marginBottom: 6 }}>
+              {/* Pista fondo */}
+              <div style={{ position: "absolute", left: 0, right: 0, height: 5, background: T.border, borderRadius: 3 }}>
+                {/* Pista rellena */}
+                <div style={{ position: "absolute", left: 0, top: 0, width: `${pct}%`, height: "100%", background: T.moss, borderRadius: 3 }} />
+              </div>
+              {/* Botón del slider */}
+              <div style={{
+                position: "absolute",
+                left: `calc(${pct}% - 14px + ${(1 - pct / 100) * 0}px)`,
+                top: "50%", transform: "translateY(-50%)",
+                width: 28, height: 28,
+                background: T.moss, borderRadius: "50%",
+                border: "3px solid #fff",
+                boxShadow: "0 2px 8px rgba(58,84,54,0.35)",
+                pointerEvents: "none",
+                zIndex: 1,
+              }} />
+              {/* Input invisible encima */}
+              <input type="range" min={40} max={1500} step={5} value={data.m2}
+                onChange={e => set("m2", Number(e.target.value))}
+                style={{
+                  position: "absolute", left: 0, top: 0, width: "100%", height: "100%",
+                  opacity: 0, cursor: "pointer", margin: 0, zIndex: 2,
+                }}
+              />
+            </div>
+          );
+        })()}
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: T.inkMuted, fontFamily: FM }}>
           <span>40 m²</span><span>1,500 m²</span>
         </div>
       </div>
