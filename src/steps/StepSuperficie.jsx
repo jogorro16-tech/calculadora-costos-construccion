@@ -30,8 +30,25 @@ export default function StepSuperficie({ data, set, onBack, onNext }) {
           Incluye <strong>todas las áreas techadas</strong>: cuartos, pasillos, baños, cocina, cochera techada. No cuentes jardines o patios descubiertos.
         </p>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ fontSize: 64, fontWeight: 700, fontFamily: FD, color: T.ink, lineHeight: 1, letterSpacing: "-0.04em" }}>{data.m2}</div>
-          <div style={{ fontSize: 10, color: T.inkMuted, marginTop: 6, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: FB }}>metros cuadrados</div>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 8 }}>
+            <input
+              type="number" min={40} max={1500} value={data.m2}
+              onChange={e => {
+                const v = Math.max(40, Math.min(1500, Number(e.target.value) || 40));
+                set("m2", v);
+              }}
+              style={{
+                fontSize: 64, fontWeight: 700, fontFamily: FD, color: T.ink, lineHeight: 1,
+                letterSpacing: "-0.04em", border: "none", borderBottom: `2px solid ${T.moss}`,
+                background: "transparent", outline: "none", textAlign: "center",
+                width: `${String(data.m2).length + 1}ch`, minWidth: "3ch",
+              }}
+            />
+            <span style={{ fontSize: 14, color: T.inkMuted, fontFamily: FB, letterSpacing: "0.08em", textTransform: "uppercase", paddingBottom: 8 }}>m²</span>
+          </div>
+          <div style={{ fontSize: 10, color: T.inkMuted, marginTop: 6, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: FB }}>
+            Escribe el número o mueve el control
+          </div>
           {baseM2 > 0 && (
             <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: T.moss, fontFamily: FM }}>
               ≈ {fmt(baseM2 * data.m2)}

@@ -2,6 +2,15 @@ import { T, FD, FB, FM, fmt } from "../data/tokens";
 import { PROYECTOS } from "../data/proyectos";
 import Nav from "../components/Nav";
 
+const RANGOS = {
+  habitacional:        "60 – 220 m²",
+  residencial:         "180 – 450 m²",
+  residencial_premium: "350 m² en adelante",
+  local_comercial:     "30 – 400 m²",
+  oficinas:            "40 – 600 m²",
+  mixto:               "120 – 600 m²",
+};
+
 export default function StepProyecto({ data, set, onNext }) {
   return (
     <>
@@ -22,6 +31,9 @@ export default function StepProyecto({ data, set, onNext }) {
               <div style={{ textAlign: "left" }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: data.proyecto === p.id ? T.moss : T.ink, fontFamily: FD }}>{p.label}</div>
                 <div style={{ fontSize: 11, color: T.inkSub, fontFamily: FB, marginTop: 2 }}>{p.desc}</div>
+                <div style={{ marginTop: 5, display: "inline-block", fontSize: 9, fontWeight: 600, color: data.proyecto === p.id ? T.mossMid : T.inkMuted, fontFamily: FM, letterSpacing: "0.06em", border: `1px solid ${data.proyecto === p.id ? T.mossMid : T.border}`, padding: "1px 6px" }}>
+                  {RANGOS[p.id]}
+                </div>
               </div>
             </div>
             <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
