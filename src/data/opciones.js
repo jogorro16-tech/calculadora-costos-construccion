@@ -10,12 +10,15 @@ export const TERRENO = [
 ];
 
 export const COMPLEJIDAD = [
-  {id:"ortogonal", icon:"⬜", label:"Volumetría ortogonal",             tag:"Sin sobrecosto",
+  {id:"ortogonal", icon:"⬜", label:"Volumetría ortogonal",             tag:"Sin sobrecosto", recomendado:true,
    desc:"Volúmenes de ángulos rectos y geometría limpia. El lenguaje arquitectónico contemporáneo más utilizado — orden, claridad y elegancia.",
    nota:"Permite optimizar estructura y materiales sin sacrificar calidad de diseño.", partida:"estructura", factor:1.0},
   {id:"niveles",   icon:"▦",  label:"Ortogonal con juego de niveles",  tag:"+3% del total",
    desc:"Volúmenes ortogonales con desniveles, voladizos, terrazas escalonadas o patios hundidos. Genera dinamismo y jerarquía espacial.",
    nota:"Mayor complejidad constructiva pero con un resultado arquitectónico de alto impacto.", partida:"estructura", factor:1.08},
+  {id:"fuera_eje", icon:"◧",  label:"Volumetría fuera de eje",         tag:"+4% del total",
+   desc:"Volúmenes ortogonales con ejes rotados o inclinados intencionalmente. Genera vestibulaciones distintas, aberturas anguladas y una dinámica espacial muy particular sin necesidad de curvas.",
+   nota:"Entre lo ortogonal y lo orgánico. Requiere mayor precisión en el cálculo estructural y en el trazo de obra.", partida:"estructura", factor:1.12},
   {id:"organico",  icon:"◈",  label:"Formas orgánicas o dinámicas",    tag:"+7% del total",
    desc:"Curvas, ángulos libres o geometrías no convencionales. Alta expresividad con estructura y cimbra especializada.",
    nota:"Para proyectos donde el concepto arquitectónico es el protagonista.", partida:"estructura", factor:1.20},
@@ -38,7 +41,7 @@ export const ESPACIOS = [
   {id:"definida",       icon:"🟦", label:"Espacios definidos y funcionales",   tag:"Sin sobrecosto",
    desc:"Zonas claramente delimitadas con altura de 2.60 a 3.00 m. Cada área tiene su función bien definida y es fácil de amueblar.",
    nota:"La opción más eficiente y versátil. Funciona perfectamente en cualquier tipo de proyecto.", partida:"estructura", factor:1.0},
-  {id:"abierta",        icon:"🔲", label:"Planta abierta e integrada",         tag:"+2% del total",
+  {id:"abierta",        icon:"🔲", label:"Planta abierta e integrada",         tag:"+2% del total", recomendado:true,
    desc:"Sala, comedor y cocina conectados en un solo espacio sin muros intermedios. Requiere vigas para librar vanos grandes.",
    nota:"Hace los espacios sentirse más amplios y favorece la convivencia familiar.", partida:"estructura", factor:1.06},
   {id:"desniveles",     icon:"⬆️", label:"Juego de desniveles entre zonas",    tag:"+4% del total",
@@ -50,7 +53,7 @@ export const ESPACIOS = [
 ];
 
 export const TECHOS = [
-  {id:"plano",     icon:"▬",  label:"Losa plana",                          tag:"Sin sobrecosto",
+  {id:"plano",     icon:"▬",  label:"Losa plana",                          tag:"Sin sobrecosto", recomendado:true,
    desc:"La solución más utilizada en México. Robusta, económica y permite tener terraza o ampliar en el futuro.",
    nota:"Requiere buen impermeabilizante y pendientes mínimas para drenar el agua de lluvia.", partida:"estructura", factor:1.0},
   {id:"inclinado", icon:"🏔", label:"Cubierta inclinada contemporánea",     tag:"+2.5% del total",
@@ -71,7 +74,7 @@ export const BIOCLIMATICA = [
   {id:"ninguna",    icon:"○",  label:"Sin estrategias",     tag:"Sin sobrecosto",
    desc:"Diseño convencional. El espacio dependerá del aire acondicionado y calefacción para estar cómodo durante todo el año.",
    nota:"Considera que esto puede traducirse en un mayor gasto mensual de electricidad y gas a lo largo de la vida del proyecto.", partida:"instalaciones", factor:1.0},
-  {id:"basico",     icon:"🌿", label:"Paquete básico",       tag:"+0.6% del total",
+  {id:"basico",     icon:"🌿", label:"Paquete básico",       tag:"+0.6% del total", recomendado:true,
    desc:"Orientar el edificio hacia el sol correctamente, agregar voladizos (salientes del techo que dan sombra a las ventanas) y diseñar ventanas que aprovechen las corrientes de aire naturales para ventilar sin necesidad de aparatos.",
    nota:"Con esto el espacio se siente más fresco en verano y más cálido en invierno. Puede reducir hasta un 20% el uso del A/C.",
    incluye:"Orientación solar correcta · Voladizos de sombra · Ventanas para ventilación cruzada · Vegetación estratégica", partida:"instalaciones", factor:1.04},
@@ -86,36 +89,42 @@ export const BIOCLIMATICA = [
 ];
 
 export const FACHADA = [
-  {id:"estuco",     icon:"⬜", label:"Estuco o mortero pintado",            tag:"Sin sobrecosto",
-   desc:"Recubrimiento exterior en estuco, pasta fina o mortero de calidad, acabado liso o texturizado. El acabado más utilizado en proyectos contemporáneos de la región.",
-   nota:"Permite una gran variedad de texturas y colores. Fácil de mantener y reparar.", partida:"fachada", factor:1.0},
-  {id:"concreto_ap",icon:"▦",  label:"Detalles en concreto aparente",       tag:"+1.5% del total",
-   desc:"Muros base en estuco con columnas, elementos estructurales o muros de acento en concreto visto. Combina calidez y robustez.",
-   nota:"Más viable económicamente que usar concreto aparente en toda la fachada. Alto impacto con uso selectivo.", partida:"fachada", factor:1.25},
-  {id:"piedra",     icon:"🪨", label:"Piedra natural en zonas clave",        tag:"+3% del total",
-   desc:"Muros principales en estuco con detalles en piedra natural, cantera o laja en zonas estratégicas de la fachada.",
-   nota:"Altísima durabilidad y carácter regional. Muy presente en la arquitectura queretana contemporánea.", partida:"fachada", factor:1.50},
-  {id:"madera",     icon:"🪵", label:"Madera tratada en exteriores",         tag:"+2% del total",
-   desc:"Lamas o paneles de madera tratada para exterior en combinación con estuco. Calidez y textura únicas.",
-   nota:"Requiere mantenimiento periódico con acabados UV. Usar maderas tratadas o de alta durabilidad para exterior.", partida:"fachada", factor:1.35},
-  {id:"mixta_fach", icon:"◈",  label:"Fachada mixta premium",               tag:"+3.5% del total",
-   desc:"Base en estuco combinada con dos o más materiales: piedra, concreto aparente, mármol, laja o detalles en herrería de diseño.",
-   nota:"El mayor nivel de expresividad y personalización. Cada material se usa donde genera el mayor impacto visual.", partida:"fachada", factor:1.58},
+  {id:"aplanado",      icon:"⬜", label:"Estuco y pintura exterior",              tag:"Sin sobrecosto",
+   desc:"Toda la fachada resuelta en estuco o mortero de calidad con pintura exterior de primera. Limpio, contemporáneo y de bajo mantenimiento.",
+   nota:"La base más utilizada en proyectos de calidad. Versátil en texturas y colores — puede verse muy bien con un buen diseño.", partida:"fachada", factor:1.0},
+  {id:"aparentes",     icon:"▦",  label:"Estuco + materiales aparentes",          tag:"+1.5% del total",
+   desc:"Muros en estuco con zonas en concreto aparente o tabique visto. Da carácter contemporáneo e industrial a zonas estratégicas de la fachada.",
+   nota:"El material aparente se usa donde genera mayor impacto — acceso, esquinas o elementos verticales.", partida:"fachada", factor:1.25},
+  {id:"combinacion",   icon:"◉",  label:"Estuco + acentos en material natural",  tag:"+2.5% del total", recomendado:true,
+   desc:"Muros principales en estuco con zonas en material natural — piedra, laja o madera tratada — que enmarcan la entrada, ritman la fachada y jerarquizan las aberturas.",
+   nota:"El balance que más nos gusta trabajar. Calidez del material natural con la limpieza del estuco. Funciona muy bien en Querétaro.", partida:"fachada", factor:1.40},
+  {id:"recubrimientos",icon:"🪨", label:"Predominio de materiales naturales",     tag:"+3.5% del total",
+   desc:"La mayor parte de la fachada resuelta en materiales naturales — piedra, laja volcánica, madera o combinaciones de alto impacto visual.",
+   nota:"El nivel más expresivo. Requiere mayor tiempo de obra y coordinación con maestros especializados.", partida:"fachada", factor:1.55},
 ];
 
-export const CARPINTERIA = [
-  {id:"estandar", icon:"🚪", label:"Puertas estándar (2.10 m)",              tag:"Sin sobrecosto",
-   desc:"MDF o tablero tambor con chapa, marco de aluminio o madera. Funcional y económico.",
-   nota:"Amplia disponibilidad. Ideal para proyectos donde la carpintería no es el protagonista.", partida:"carpinteria", factor:1.0},
-  {id:"alta",     icon:"🏛", label:"Puertas de mayor altura (sin cerramiento)",tag:"+2% del total",
-   desc:"2.60 a 3.00 m sin marco visible sobre el dintel. Genera continuidad visual entre espacios y altura real.",
-   nota:"Elimina el espacio muerto sobre la puerta. Efecto muy sofisticado con un costo moderado.", partida:"carpinteria", factor:1.28},
-  {id:"madera_s", icon:"🌳", label:"Madera sólida a medida",                  tag:"+3.5% del total",
-   desc:"Cedro, encino u otras maderas sólidas fabricadas por carpintero especializado. Peso, solidez y carácter únicos.",
-   nota:"Requiere tiempo de fabricación y carpintero de confianza. Resultado de altísima calidad.", partida:"carpinteria", factor:1.50},
-  {id:"pivote",   icon:"↻",  label:"Puertas pivotantes de diseño",            tag:"+4.5% del total",
-   desc:"Giro sobre eje vertical. Gran dimensión y presencia escultórica. Se convierte en un elemento arquitectónico.",
-   nota:"Herraje europeo especializado. El elemento de entrada más impactante que existe.", partida:"carpinteria", factor:1.65},
+export const PUERTAS = [
+  {id:"tambor_ligera",    icon:"🚪", label:"Puertas tambor estándar",              tag:"Sin sobrecosto",
+   desc:"Hoja de tablero en marco de madera con relleno tipo panal. Ligeras, económicas y funcionales. Las más utilizadas en la construcción residencial.",
+   nota:"Se pueden pintar, lacar o enchapar en madera. Buena relación costo-calidad para todo el proyecto.", partida:"carpinteria", factor:1.0},
+  {id:"tambor_reforzada", icon:"🚪", label:"Puertas de mayor altura sin cerramiento", tag:"+1% del total",
+   desc:"Tablero o MDF de mayor espesor, altura extendida de 2.40–3.00 m sin marco visible sobre el dintel. Genera continuidad visual y mayor presencia.",
+   nota:"Elimina el espacio muerto sobre la puerta. Efecto sofisticado con un costo moderado.", partida:"carpinteria", factor:1.25},
+  {id:"madera_solida",    icon:"🌳", label:"Madera sólida a medida",                tag:"+2% del total",
+   desc:"Cedro, encino u otras maderas nobles fabricadas por carpintero especializado. Peso, solidez y carácter únicos en cada puerta.",
+   nota:"Requiere tiempo de fabricación y carpintero de confianza. El nivel más alto en puertas interiores.", partida:"carpinteria", factor:1.55},
+];
+
+export const CLOSETS = [
+  {id:"melamina_basica", icon:"▦",  label:"Closets en melamina básica",      tag:"Sin sobrecosto",
+   desc:"Tablero melamínico de 15 mm con herrajes básicos. Funcional, limpio y accesible. La solución más común en construcción residencial.",
+   nota:"Amplia disponibilidad. Ideal cuando la carpintería interior no necesita ser protagonista.", partida:"carpinteria", factor:1.0},
+  {id:"melamina_media",  icon:"◼",  label:"Closets en melamina de calidad",  tag:"+1% del total",
+   desc:"Tablero de mayor espesor (18–19 mm) con cantos gruesos y herraje Blum con cierre suave. Mayor durabilidad y terminado más cuidado.",
+   nota:"La diferencia se nota en el tacto y en el uso cotidiano. Muy recomendable para la recámara principal.", partida:"carpinteria", factor:1.20},
+  {id:"madera_closet",   icon:"🌳", label:"Closets en MDF lacado o madera",  tag:"+1.5% del total",
+   desc:"MDF lacado mate o brillante, o madera con chapa natural, con herraje europeo de extracción total. Acabado de interiorismo de alta calidad.",
+   nota:"Requiere carpintero especializado y proyecto de diseño. El nivel más alto en carpintería de interiores.", partida:"carpinteria", factor:1.50},
 ];
 
 export const VANOS_AMPLITUD = [
@@ -146,32 +155,35 @@ export const CANCELERIA_CALIDAD = [
 ];
 
 export const APLANADOS = [
-  {id:"yeso",           icon:"⬜", label:"Yeso liso en todo el proyecto",              tag:"Sin sobrecosto",
-   desc:"Acabado liso y uniforme aplicado sobre los muros. El estándar de calidad en interiores — paredes perfectas listas para pintar.",
-   nota:"Base ideal para cualquier acabado decorativo posterior.", partida:"acabados", factor:1.0},
-  {id:"estuco_comunes", icon:"▦",  label:"Yeso en privados · Estuco en áreas sociales", tag:"+0.5% del total",
-   desc:"Recámaras y zonas privadas en yeso liso. Sala, comedor y cocina en estuco fino texturizado o pigmentado en masa.",
-   nota:"El estuco puede pigmentarse directamente — sin necesidad de pintura adicional.", partida:"acabados", factor:1.03},
-  {id:"expuesto_acento",icon:"▧",  label:"Yeso + muro de acento en concreto o tabique",  tag:"+1% del total",
-   desc:"Un muro o zona específica en concreto aparente o tabique visto como elemento de diseño interior.",
-   nota:"Requiere precisión constructiva — el acabado final se define desde la colocación del material.", partida:"acabados", factor:1.06},
-  {id:"pasta_especial", icon:"🌿", label:"Detalle en acabado fino: microcemento, chukum o aplanado pulido", tag:"+1.5% del total",
-   desc:"Zonas clave con microcemento, chukum (pasta natural de alta calidad y acabado mineral) o aplanado quemado y pulido a mano.",
-   nota:"Requiere maestros especializados. Acabado de alto impacto visual con profundidad y textura únicos. Más costoso en mano de obra.", partida:"acabados", factor:1.10},
-  {id:"porcelanato_muro",icon:"◈", label:"Recubrimiento especial en muros: porcelanato, mármol o azulejo de diseño", tag:"+2% del total",
-   desc:"Muros recubiertos con porcelanato de gran formato, mármol natural, azulejo artesanal u otro recubrimiento de diseño en zonas específicas.",
-   nota:"Requiere definirse desde el proyecto. Máximo impacto visual en zonas como cocina, sala o baño principal.", partida:"acabados", factor:1.14},
+  {id:"liso",          icon:"⬜", label:"Yeso liso + pintura",                          tag:"Sin sobrecosto",
+   desc:"Acabado en yeso liso de alta calidad en todos los muros interiores, listo para pintura de primera. El estándar de los mejores proyectos contemporáneos.",
+   nota:"Base perfecta para cualquier acabado posterior. Paredes planas, con la geometría del espacio como protagonista.", partida:"acabados", factor:1.0},
+  {id:"aparente",      icon:"▦",  label:"Yeso + acentos en material aparente",           tag:"+1% del total",
+   desc:"Muros en yeso liso con uno o varios muros de acento en concreto aparente, tabique visto o ladrillo. Da carácter e identidad sin revestir toda la superficie.",
+   nota:"El muro de acento se define desde el proyecto. Su posición estratégica define el resultado.", partida:"acabados", factor:1.06},
+  {id:"recubrimiento", icon:"◈",  label:"Yeso + recubrimiento en zonas clave",           tag:"+1.5% del total",
+   desc:"Muros en yeso liso con zonas en porcelanato de diseño, granito, mármol o azulejo artesanal. Ideal para sala, comedor o recámara principal.",
+   nota:"Los recubrimientos deben definirse desde el proyecto. Máximo impacto visual donde el espacio lo merece.", partida:"acabados", factor:1.10},
+  {id:"fino",          icon:"🌿", label:"Yeso + acabado fino en zonas clave",             tag:"+2% del total",
+   desc:"Yeso liso en la mayoría de los muros con zonas en microcemento, chukum o aplanado quemado y pulido a mano. El acabado más expresivo en interiores.",
+   nota:"Requiere maestros especializados y tiempo adicional. El resultado es único — profundidad y textura que no se replica con pintura.", partida:"acabados", factor:1.14},
 ];
 
 export const LAMBRINES = [
-  {id:"ninguno",  icon:"○",  label:"Sin detalles adicionales en muros",    tag:"Sin sobrecosto",
-   desc:"Solo aplanados en muros, sin carpintería ni recubrimientos adicionales.", partida:"acabados", factor:1.0},
-  {id:"parciales",icon:"▬",  label:"Lambrines parciales (h = 1.20 m)",    tag:"+0.5% del total",
-   desc:"Remate inferior de madera o MDF en pasillos, escaleras o baños. Elegancia y protección en zonas de mayor desgaste.", partida:"acabados", factor:1.03},
-  {id:"completos",icon:"▮",  label:"Lambrines de piso a techo",            tag:"+1% del total",
-   desc:"Paneles que cubren el muro de manera completa. Efecto cálido y muy contemporáneo.", partida:"acabados", factor:1.06},
-  {id:"diseno",   icon:"◈",  label:"Lambrines o paneles de diseño especial",tag:"+1.5% del total",
-   desc:"Paneles con relieve, ranuras, materiales mixtos o tapizado. Elemento de diseño de alto impacto en recámara principal o sala.", partida:"acabados", factor:1.09},
+  {id:"ninguno",    icon:"○",  label:"Sin lambrines",                                         tag:"Sin sobrecosto",
+   desc:"Solo aplanados en muros, sin carpintería ni paneles adicionales.", partida:"acabados", factor:1.0},
+  {id:"acento_eco", icon:"▬",  label:"Acento puntual — aprox. 3 m lineales",                 tag:"+0.5% del total",
+   desc:"Un detalle de lambrin en melamina o WPC en un pasillo, escalera o zona de entrada. Solo donde importa.",
+   nota:"Una sola franja bien ubicada puede cambiar la percepción de un espacio. Equivale a cubrir un muro angosto.", partida:"acabados", factor:1.03},
+  {id:"zonas",      icon:"▮",  label:"Lambrin en zonas clave — aprox. 6 m lineales",          tag:"+1% del total",
+   desc:"Melamina de calidad en dos o tres zonas del proyecto — recámara principal, sala o comedor. Con herraje y remates cuidados.",
+   nota:"Equivale a cubrir un muro de la sala y uno de la recámara, de piso a techo.", partida:"acabados", factor:1.06},
+  {id:"amplio_med", icon:"▪",  label:"Lambrin amplio — aprox. 10 m lineales",                 tag:"+1.5% del total",
+   desc:"Melamina premium o chapa de madera en varias zonas del proyecto. Material con calidez y presencia.",
+   nota:"Cubre varios muros clave en recámaras y sala. Aquí el interior empieza a sentirse como un proyecto de interiorismo.", partida:"acabados", factor:1.09},
+  {id:"solida",     icon:"🪵", label:"Madera sólida — aprox. 10 m lineales",                  tag:"+2% del total",
+   desc:"Paneles de madera sólida o enchapada en madera natural. El material más cálido y de mayor carácter para revestimiento interior.",
+   nota:"Requiere carpintero especializado. Duradero, único y de altísima calidad.", partida:"acabados", factor:1.13},
 ];
 
 export const PLAFONES = [
@@ -187,7 +199,7 @@ export const PLAFONES = [
   {id:"madera_plafon",icon:"🪵", label:"Plafón de madera (duelas o lamas)",     tag:"+1.5% del total",
    desc:"Duelas o lamas de madera natural, MDF enchapado o similar. Calidez y textura únicos en el espacio.",
    nota:"Puede combinarse con losa expuesta en zonas de servicio y circulaciones.", partida:"acabados", factor:1.09},
-  {id:"mixto_plafon", icon:"◉",  label:"Combinación de plafones por zona",      tag:"+1% del total",
+  {id:"mixto_plafon", icon:"◉",  label:"Combinación de plafones por zona",      tag:"+1% del total", recomendado:true,
    desc:"Losa expuesta en servicios y circulaciones, yeso en recámaras, desnivel con luz en áreas sociales.",
    nota:"La solución más expresiva. Cada espacio tiene su propio carácter y tratamiento.", partida:"acabados", factor:1.06},
 ];

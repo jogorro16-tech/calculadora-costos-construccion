@@ -3,7 +3,7 @@ import { T, FD, FB, FM, fmt } from "./data/tokens";
 import { STEPS, PROYECTOS } from "./data/proyectos";
 import {
   TERRENO, COMPLEJIDAD, SERVICIOS, ESPACIOS, TECHOS,
-  BIOCLIMATICA, FACHADA, CARPINTERIA,
+  BIOCLIMATICA, FACHADA,
   APLANADOS, LAMBRINES, PLAFONES, PISOS,
   COCINA, BANOS, ELECTRICOS, URGENCIA,
 } from "./data/opciones";
@@ -14,6 +14,7 @@ import StepProyecto from "./steps/StepProyecto";
 import StepSuperficie from "./steps/StepSuperficie";
 import StepOpciones from "./steps/StepOpciones";
 import StepVentanas from "./steps/StepVentanas";
+import StepCarpinteria from "./steps/StepCarpinteria";
 import StepExtras from "./steps/StepExtras";
 import StepResultado from "./steps/StepResultado";
 
@@ -22,7 +23,8 @@ const TOTAL = STEPS.length - 1;
 const INIT = {
   proyecto: null, m2: 120,
   terreno: null, complejidad: null, servicios: null, espacios: null,
-  techos: null, bioclimatica: null, fachada: null, carpinteria: null,
+  techos: null, bioclimatica: null, fachada: null,
+  puertas: null, closets: null,
   vanos_amplitud: null, canceleria_calidad: null,
   aplanados: null, lambrines: null, plafones: null, pisos: null,
   cocina: null, banos: null, electricos: null, urgencia: null,
@@ -37,7 +39,6 @@ const PASOS_OPCIONES = [
   { step: 6,  key: "techos",          opts: TECHOS,       stepTitle: "Techos y cubiertas",          pregunta: "El tipo de cubierta define la forma del proyecto, la impermeabilización y el nivel de mantenimiento a futuro." },
   { step: 7,  key: "bioclimatica",    opts: BIOCLIMATICA, stepTitle: "Confort y clima",             pregunta: "Estas estrategias definen qué tan cómodo se sentirá el espacio durante el año, y cuánto dependerá del aire acondicionado o la calefacción." },
   { step: 8,  key: "fachada",         opts: FACHADA,      stepTitle: "Fachada y exteriores",        pregunta: "Los materiales de fachada definen la imagen del proyecto y su nivel de mantenimiento a largo plazo." },
-  { step: 9,  key: "carpinteria",     opts: CARPINTERIA,  stepTitle: "Carpintería y puertas",       pregunta: "Las puertas interiores son un detalle que muchos subestiman — definen el carácter y la calidad percibida del espacio." },
   { step: 11, key: "aplanados",       opts: APLANADOS,    stepTitle: "Acabados en muros",           pregunta: "El acabado de las paredes interiores define la textura, el ambiente y la personalidad de cada espacio." },
   { step: 12, key: "lambrines",       opts: LAMBRINES,    stepTitle: "Detalles en muros",           pregunta: "Recubrimientos o paneles adicionales en muros interiores — pueden ser decorativos o protectores." },
   { step: 13, key: "plafones",        opts: PLAFONES,     stepTitle: "Plafones y techos interiores",pregunta: "El acabado del techo interior define la altura visual del espacio y es donde vive la iluminación integrada." },
@@ -93,6 +94,7 @@ export default function App() {
 
         {step === 0  && <StepProyecto  data={data} set={set} onNext={next} />}
         {step === 1  && <StepSuperficie data={data} set={set} onBack={back} onNext={next} />}
+        {step === 9  && <StepCarpinteria data={data} set={set} onBack={back} onNext={next} dudas={data.dudas} togDuda={togDuda} />}
         {step === 10 && <StepVentanas  data={data} set={set} onBack={back} onNext={next} dudas={data.dudas} togDuda={togDuda} />}
         {step === 19 && <StepExtras    data={data} set={set} tog={tog} onBack={back} onNext={next} dudas={data.dudas} togDuda={togDuda} />}
         {step === 20 && (

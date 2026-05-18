@@ -1,7 +1,7 @@
 import { PARTIDAS, PROYECTOS } from "../data/proyectos";
 import {
   TERRENO, COMPLEJIDAD, ESPACIOS, TECHOS, SERVICIOS, BIOCLIMATICA,
-  ELECTRICOS, FACHADA, CARPINTERIA, VANOS_AMPLITUD, CANCELERIA_CALIDAD,
+  ELECTRICOS, FACHADA, PUERTAS, CLOSETS, VANOS_AMPLITUD, CANCELERIA_CALIDAD,
   APLANADOS, LAMBRINES, PLAFONES, PISOS,
   COCINA, BANOS, URGENCIA,
 } from "../data/opciones";
@@ -34,8 +34,8 @@ export function calcTotal(d) {
   costos.instalaciones *= find(BIOCLIMATICA, d.bioclimatica);
   costos.instalaciones *= find(ELECTRICOS,   d.electricos);
 
-  costos.fachada      *= find(FACHADA,     d.fachada);
-  costos.carpinteria  *= find(CARPINTERIA, d.carpinteria);
+  costos.fachada      *= find(FACHADA,  d.fachada);
+  costos.carpinteria  *= (find(PUERTAS, d.puertas) + find(CLOSETS, d.closets)) / 2;
 
   // Cancelería: apertura de vanos × calidad del sistema
   costos.canceleria *= find(VANOS_AMPLITUD,    d.vanos_amplitud);

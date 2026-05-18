@@ -22,6 +22,11 @@ export default function Card({ opt, selected, onClick }) {
       {selected && (
         <div style={{ position: "absolute", top: 12, right: 12, width: 16, height: 16, background: T.moss, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "#fff", fontWeight: 700 }}>✓</div>
       )}
+      {opt.recomendado && (
+        <div style={{ position: "absolute", top: selected ? 34 : 12, right: 12, background: T.moss, color: "#fff", fontSize: 8, fontWeight: 700, padding: "2px 7px", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: FM }}>
+          Landa
+        </div>
+      )}
       <div style={{ fontSize: 16, marginBottom: 8, opacity: 0.7 }}>{opt.icon}</div>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
         <span style={{ fontSize: 14, fontWeight: 600, color: selected ? T.moss : T.ink, fontFamily: FD, letterSpacing: "-0.01em", lineHeight: 1.2 }}>{opt.label}</span>

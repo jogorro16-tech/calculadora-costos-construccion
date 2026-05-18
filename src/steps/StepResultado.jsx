@@ -2,7 +2,7 @@ import { T, FD, FB, FM, fmt, WA, EMAIL } from "../data/tokens";
 import { PROYECTOS } from "../data/proyectos";
 import {
   TERRENO, COMPLEJIDAD, SERVICIOS, ESPACIOS, TECHOS,
-  BIOCLIMATICA, FACHADA, CARPINTERIA, VANOS_AMPLITUD, CANCELERIA_CALIDAD,
+  BIOCLIMATICA, FACHADA, PUERTAS, CLOSETS, VANOS_AMPLITUD, CANCELERIA_CALIDAD,
   APLANADOS, LAMBRINES, PLAFONES, PISOS, COCINA, BANOS, ELECTRICOS, URGENCIA,
 } from "../data/opciones";
 import { EXTRAS } from "../data/extras";
@@ -45,7 +45,8 @@ function buildResumen(data, c, name, phone) {
     `· Sistema cancelería: ${L(CANCELERIA_CALIDAD, data.canceleria_calidad)}`,
     ``,
     `── INTERIORES ──`,
-    `· Carpintería: ${L(CARPINTERIA, data.carpinteria)}`,
+    `· Puertas: ${L(PUERTAS, data.puertas)}`,
+    `· Closets: ${L(CLOSETS, data.closets)}`,
     `· Muros: ${L(APLANADOS, data.aplanados)}`,
     `· Det. muros: ${L(LAMBRINES, data.lambrines)}`,
     `· Plafones: ${L(PLAFONES, data.plafones)}`,
@@ -120,7 +121,8 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
           { l: "Fachada",             v: L(FACHADA, data.fachada) },
           { l: "Apertura de vanos",   v: L(VANOS_AMPLITUD, data.vanos_amplitud) },
           { l: "Cancelería",          v: L(CANCELERIA_CALIDAD, data.canceleria_calidad) },
-          { l: "Carpintería",         v: L(CARPINTERIA, data.carpinteria) },
+          { l: "Puertas",             v: L(PUERTAS, data.puertas) },
+          { l: "Closets",             v: L(CLOSETS, data.closets) },
           { l: "Muros interiores",    v: L(APLANADOS, data.aplanados) },
           { l: "Detalles en muros",   v: L(LAMBRINES, data.lambrines) },
           { l: "Plafones",            v: L(PLAFONES, data.plafones) },
