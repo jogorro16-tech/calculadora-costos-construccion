@@ -2,7 +2,7 @@ import { PARTIDAS, PROYECTOS } from "../data/proyectos";
 import {
   TERRENO, COMPLEJIDAD, ESPACIOS, TECHOS, SERVICIOS, BIOCLIMATICA,
   ELECTRICOS, FACHADA, PUERTAS, CLOSETS, VANOS_AMPLITUD, CANCELERIA_CALIDAD,
-  APLANADOS, LAMBRINES, PLAFONES, PISOS,
+  APLANADOS, PLAFONES, PISOS,
   COCINA, BANOS, URGENCIA,
 } from "../data/opciones";
 import { EXTRAS } from "../data/extras";
@@ -42,10 +42,9 @@ export function calcTotal(d) {
   costos.canceleria *= find(CANCELERIA_CALIDAD, d.canceleria_calidad);
 
   const fAplan = find(APLANADOS, d.aplanados);
-  const fLamb  = find(LAMBRINES, d.lambrines);
   const fPlaf  = find(PLAFONES,  d.plafones);
   const fPiso  = find(PISOS,     d.pisos);
-  costos.acabados *= (fAplan + fLamb + fPlaf + fPiso) / 4;
+  costos.acabados *= (fAplan + fPlaf + fPiso) / 3;
 
   const fCoc  = find(COCINA, d.cocina);
   const fBano = find(BANOS,  d.banos);
