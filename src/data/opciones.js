@@ -155,17 +155,17 @@ export const CANCELERIA_CALIDAD = [
 ];
 
 export const APLANADOS = [
-  {id:"liso",          icon:"⬜", label:"Yeso liso + pintura",                          tag:"Sin sobrecosto",
-   desc:"Acabado en yeso liso de alta calidad en todos los muros interiores, listo para pintura de primera. El estándar de los mejores proyectos contemporáneos.",
+  {id:"liso",          icon:"⬜", label:"Aplanado liso + pintura",                        tag:"Sin sobrecosto",
+   desc:"Acabado en yeso, estuco o mortero liso de alta calidad en todos los muros interiores, listo para pintura de primera. El estándar de los mejores proyectos contemporáneos.",
    nota:"Base perfecta para cualquier acabado posterior. Paredes planas, con la geometría del espacio como protagonista.", partida:"acabados", factor:1.0},
-  {id:"aparente",      icon:"▦",  label:"Yeso + acentos en material aparente",           tag:"+1% del total",
-   desc:"Muros en yeso liso con uno o varios muros de acento en concreto aparente, tabique visto o ladrillo. Da carácter e identidad sin revestir toda la superficie.",
+  {id:"aparente",      icon:"▦",  label:"Aplanado + acentos en material aparente",        tag:"+1% del total",
+   desc:"Muros en aplanado liso con uno o varios muros de acento en concreto aparente, tabique visto o ladrillo. Da carácter e identidad sin revestir toda la superficie.",
    nota:"El muro de acento se define desde el proyecto. Su posición estratégica define el resultado.", partida:"acabados", factor:1.06},
-  {id:"recubrimiento", icon:"◈",  label:"Yeso + recubrimiento en zonas clave",           tag:"+1.5% del total",
-   desc:"Muros en yeso liso con zonas en porcelanato de diseño, granito, mármol o azulejo artesanal. Ideal para sala, comedor o recámara principal.",
+  {id:"recubrimiento", icon:"◈",  label:"Aplanado + recubrimiento en zonas clave",        tag:"+1.5% del total",
+   desc:"Aplanado liso con zonas en porcelanato de diseño, granito, mármol o azulejo artesanal. Ideal para sala, comedor o recámara principal.",
    nota:"Los recubrimientos deben definirse desde el proyecto. Máximo impacto visual donde el espacio lo merece.", partida:"acabados", factor:1.10},
-  {id:"fino",          icon:"🌿", label:"Yeso + acabado fino en zonas clave",             tag:"+2% del total",
-   desc:"Yeso liso en la mayoría de los muros con zonas en microcemento, chukum o aplanado quemado y pulido a mano. El acabado más expresivo en interiores.",
+  {id:"fino",          icon:"🌿", label:"Aplanado + acabado fino en zonas clave",         tag:"+2% del total",
+   desc:"Aplanado liso en la mayoría de los muros con zonas en microcemento, chukum o aplanado quemado y pulido a mano. El acabado más expresivo en interiores.",
    nota:"Requiere maestros especializados y tiempo adicional. El resultado es único — profundidad y textura que no se replica con pintura.", partida:"acabados", factor:1.14},
 ];
 
