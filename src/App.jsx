@@ -3,7 +3,7 @@ import { T, FD, FB, FM, fmt } from "./data/tokens";
 import { STEPS, PROYECTOS } from "./data/proyectos";
 import {
   TERRENO, COMPLEJIDAD, SERVICIOS, ESPACIOS, TECHOS,
-  BIOCLIMATICA, FACHADA, CARPINTERIA, VENTANAS,
+  BIOCLIMATICA, FACHADA, CARPINTERIA,
   APLANADOS, LAMBRINES, PLAFONES, PISOS,
   COCINA, BANOS, ELECTRICOS, URGENCIA,
 } from "./data/opciones";
@@ -13,38 +13,39 @@ import StepHead from "./components/StepHead";
 import StepProyecto from "./steps/StepProyecto";
 import StepSuperficie from "./steps/StepSuperficie";
 import StepOpciones from "./steps/StepOpciones";
+import StepVentanas from "./steps/StepVentanas";
 import StepExtras from "./steps/StepExtras";
 import StepResultado from "./steps/StepResultado";
 
 const TOTAL = STEPS.length - 1;
 
 const INIT = {
-  proyecto: null, m2: 120, terreno: null, complejidad: null,
-  servicios: null, espacios: null, techos: null, bioclimatica: null,
-  fachada: null, carpinteria: null, ventanas: null, aplanados: null,
-  lambrines: null, plafones: null, pisos: null, cocina: null,
-  banos: null, electricos: null, urgencia: null, extras: [],
+  proyecto: null, m2: 120,
+  terreno: null, complejidad: null, servicios: null, espacios: null,
+  techos: null, bioclimatica: null, fachada: null, carpinteria: null,
+  vanos_amplitud: null, canceleria_calidad: null,
+  aplanados: null, lambrines: null, plafones: null, pisos: null,
+  cocina: null, banos: null, electricos: null, urgencia: null,
+  extras: [], cocheras: 0, dudas: [],
 };
 
-// Mapa de pasos a datos y opciones
 const PASOS_OPCIONES = [
-  { step: 2,  key: "terreno",     opts: TERRENO,     stepTitle: "El terreno",               pregunta: "La condición del terreno afecta directamente la cimentación y el costo total. Sé lo más preciso posible." },
-  { step: 3,  key: "complejidad", opts: COMPLEJIDAD,  stepTitle: "Concepto arquitectónico",  pregunta: "¿Cómo imaginas el proyecto en cuanto a forma y volumetría? Esto impacta en la estructura y complejidad de construcción." },
-  { step: 4,  key: "servicios",   opts: SERVICIOS,    stepTitle: "Servicios disponibles",    pregunta: "Indica qué servicios tienes disponibles frente al terreno. Cada servicio que falte implica trabajo e inversión adicional." },
-  { step: 5,  key: "espacios",    opts: ESPACIOS,     stepTitle: "Espacios y distribución",  pregunta: "¿Cómo quieres que se organice el espacio interior? Esto define la estructura, las circulaciones y cómo se vive el proyecto." },
-  { step: 6,  key: "techos",      opts: TECHOS,       stepTitle: "Techos y cubiertas",       pregunta: "El tipo de cubierta define la forma del proyecto, la impermeabilización y el nivel de mantenimiento a futuro." },
-  { step: 7,  key: "bioclimatica",opts: BIOCLIMATICA, stepTitle: "Confort y clima",          pregunta: "Estas estrategias definen qué tan cómodo se sentirá el espacio durante el año, y cuánto dependerá del aire acondicionado o la calefacción." },
-  { step: 8,  key: "fachada",     opts: FACHADA,      stepTitle: "Fachada y exteriores",     pregunta: "Los materiales de fachada definen la imagen del proyecto y su nivel de mantenimiento a largo plazo." },
-  { step: 9,  key: "carpinteria", opts: CARPINTERIA,  stepTitle: "Carpintería y puertas",    pregunta: "Las puertas interiores son un detalle que muchos subestiman — definen el carácter y la calidad percibida del espacio." },
-  { step: 10, key: "ventanas",    opts: VENTANAS,     stepTitle: "Ventanas y vanos",         pregunta: "La cantidad y tamaño de ventanas define la luminosidad, la ventilación natural y la conexión visual con el exterior." },
-  { step: 11, key: "aplanados",   opts: APLANADOS,    stepTitle: "Acabados en muros",        pregunta: "El acabado de las paredes interiores define la textura, el ambiente y la personalidad de cada espacio." },
-  { step: 12, key: "lambrines",   opts: LAMBRINES,    stepTitle: "Detalles en muros",        pregunta: "Recubrimientos o paneles adicionales en muros interiores — pueden ser decorativos o protectores." },
-  { step: 13, key: "plafones",    opts: PLAFONES,     stepTitle: "Plafones y techos interiores", pregunta: "El acabado del techo interior define la altura visual del espacio y es donde vive la iluminación integrada." },
-  { step: 14, key: "pisos",       opts: PISOS,        stepTitle: "Pisos",                    pregunta: "El piso es el elemento de mayor superficie visible. Su elección define el carácter del espacio y el presupuesto de acabados." },
-  { step: 15, key: "cocina",      opts: COCINA,       stepTitle: "Cocina",                   pregunta: "Los gabinetes, herrajes y cubiertas de cocina son los elementos de mayor uso diario. La calidad aquí se nota siempre." },
-  { step: 16, key: "banos",       opts: BANOS,        stepTitle: "Baños",                    pregunta: "En los baños los acabados se perciben de cerca. Define el nivel de confort que quieres para tu proyecto." },
-  { step: 17, key: "electricos",  opts: ELECTRICOS,   stepTitle: "Eléctrico y luminarias",   pregunta: "Apagadores, contactos y luminarias se deciden durante la obra — cambiarlos después es costoso." },
-  { step: 18, key: "urgencia",    opts: URGENCIA,     stepTitle: "Plazo de obra",            pregunta: "El tiempo de construcción afecta la mano de obra. Construir más rápido requiere cuadrillas adicionales." },
+  { step: 2,  key: "terreno",         opts: TERRENO,     stepTitle: "El terreno",                  pregunta: "La condición del terreno afecta directamente la cimentación y el costo total. Sé lo más preciso posible." },
+  { step: 3,  key: "complejidad",     opts: COMPLEJIDAD,  stepTitle: "Concepto arquitectónico",     pregunta: "¿Cómo imaginas el proyecto en cuanto a forma y volumetría? Esto impacta en la estructura y complejidad de construcción." },
+  { step: 4,  key: "servicios",       opts: SERVICIOS,    stepTitle: "Servicios disponibles",       pregunta: "Indica qué servicios tienes disponibles frente al terreno. Cada servicio que falte implica trabajo e inversión adicional." },
+  { step: 5,  key: "espacios",        opts: ESPACIOS,     stepTitle: "Espacios y distribución",     pregunta: "¿Cómo quieres que se organice el espacio interior? Esto define la estructura, las circulaciones y cómo se vive el proyecto." },
+  { step: 6,  key: "techos",          opts: TECHOS,       stepTitle: "Techos y cubiertas",          pregunta: "El tipo de cubierta define la forma del proyecto, la impermeabilización y el nivel de mantenimiento a futuro." },
+  { step: 7,  key: "bioclimatica",    opts: BIOCLIMATICA, stepTitle: "Confort y clima",             pregunta: "Estas estrategias definen qué tan cómodo se sentirá el espacio durante el año, y cuánto dependerá del aire acondicionado o la calefacción." },
+  { step: 8,  key: "fachada",         opts: FACHADA,      stepTitle: "Fachada y exteriores",        pregunta: "Los materiales de fachada definen la imagen del proyecto y su nivel de mantenimiento a largo plazo." },
+  { step: 9,  key: "carpinteria",     opts: CARPINTERIA,  stepTitle: "Carpintería y puertas",       pregunta: "Las puertas interiores son un detalle que muchos subestiman — definen el carácter y la calidad percibida del espacio." },
+  { step: 11, key: "aplanados",       opts: APLANADOS,    stepTitle: "Acabados en muros",           pregunta: "El acabado de las paredes interiores define la textura, el ambiente y la personalidad de cada espacio." },
+  { step: 12, key: "lambrines",       opts: LAMBRINES,    stepTitle: "Detalles en muros",           pregunta: "Recubrimientos o paneles adicionales en muros interiores — pueden ser decorativos o protectores." },
+  { step: 13, key: "plafones",        opts: PLAFONES,     stepTitle: "Plafones y techos interiores",pregunta: "El acabado del techo interior define la altura visual del espacio y es donde vive la iluminación integrada." },
+  { step: 14, key: "pisos",           opts: PISOS,        stepTitle: "Pisos",                       pregunta: "El piso es el elemento de mayor superficie visible. Su elección define el carácter del espacio y el presupuesto de acabados." },
+  { step: 15, key: "cocina",          opts: COCINA,       stepTitle: "Cocina",                      pregunta: "Los gabinetes, herrajes y cubiertas de cocina son los elementos de mayor uso diario. La calidad aquí se nota siempre." },
+  { step: 16, key: "banos",           opts: BANOS,        stepTitle: "Baños",                       pregunta: "En los baños los acabados se perciben de cerca. Define el nivel de confort que quieres para tu proyecto." },
+  { step: 17, key: "electricos",      opts: ELECTRICOS,   stepTitle: "Eléctrico y luminarias",      pregunta: "Apagadores, contactos y luminarias se deciden durante la obra — cambiarlos después es costoso." },
+  { step: 18, key: "urgencia",        opts: URGENCIA,     stepTitle: "Plazo de obra",               pregunta: "El tiempo de construcción afecta la mano de obra. Construir más rápido requiere cuadrillas adicionales." },
 ];
 
 export default function App() {
@@ -56,15 +57,14 @@ export default function App() {
 
   const set = (k, v) => setData(d => ({ ...d, [k]: v }));
   const tog = id => set("extras", data.extras.includes(id) ? data.extras.filter(x => x !== id) : [...data.extras, id]);
+  const togDuda = title => set("dudas", data.dudas.includes(title) ? data.dudas.filter(x => x !== title) : [...data.dudas, title]);
   const sc  = () => setTimeout(() => top.current?.scrollIntoView({ behavior: "smooth" }), 40);
   const next  = () => { setStep(s => s + 1); sc(); };
   const back  = () => { setStep(s => s - 1); sc(); };
-  const reset = () => { setStep(0); setData(INIT); sc(); };
+  const reset = () => { setStep(0); setData(INIT); setName(""); setPhone(""); sc(); };
 
   const si   = STEPS[step];
   const calc = calcTotal(data);
-
-  // Buscar si el paso actual es un paso de opciones genérico
   const pasoOpciones = PASOS_OPCIONES.find(p => p.step === step);
 
   return (
@@ -93,26 +93,25 @@ export default function App() {
 
         {step === 0  && <StepProyecto  data={data} set={set} onNext={next} />}
         {step === 1  && <StepSuperficie data={data} set={set} onBack={back} onNext={next} />}
+        {step === 10 && <StepVentanas  data={data} set={set} onBack={back} onNext={next} dudas={data.dudas} togDuda={togDuda} />}
+        {step === 19 && <StepExtras    data={data} set={set} tog={tog} onBack={back} onNext={next} dudas={data.dudas} togDuda={togDuda} />}
+        {step === 20 && (
+          <StepResultado
+            c={calc} data={data}
+            name={name} setName={setName}
+            phone={phone} setPhone={setPhone}
+            onReset={reset}
+          />
+        )}
         {pasoOpciones && (
           <StepOpciones
             opciones={pasoOpciones.opts}
             dataKey={pasoOpciones.key}
-            data={data}
-            set={set}
-            onBack={back}
-            onNext={next}
+            data={data} set={set}
+            onBack={back} onNext={next}
             pregunta={pasoOpciones.pregunta}
             stepTitle={pasoOpciones.stepTitle}
-          />
-        )}
-        {step === 19 && <StepExtras data={data} tog={tog} onBack={back} onNext={next} />}
-        {step === 20 && (
-          <StepResultado
-            c={calc}
-            data={data}
-            name={name} setName={setName}
-            phone={phone} setPhone={setPhone}
-            onReset={reset}
+            dudas={data.dudas} togDuda={togDuda}
           />
         )}
       </div>

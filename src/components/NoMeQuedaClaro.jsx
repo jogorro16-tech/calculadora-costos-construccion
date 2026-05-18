@@ -1,20 +1,32 @@
-import { T, FB, WA } from "../data/tokens";
+import { T, FB } from "../data/tokens";
 
-export default function NoMeQuedaClaro({ stepTitle }) {
-  const msg = `Hola, estoy usando la Calculadora de Costos de Construcción y tengo una duda sobre la sección "${stepTitle}". ¿Me pueden ayudar a entenderla?`;
+export default function NoMeQuedaClaro({ stepTitle, dudas, togDuda }) {
+  const tieneDuda = dudas.includes(stepTitle);
   return (
-    <div style={{ marginTop: 20, padding: "12px 16px", background: T.clayLight, borderLeft: `2px solid ${T.clayBorder}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-      <p style={{ margin: 0, fontSize: 11, color: T.inkSub, fontFamily: FB, lineHeight: 1.5 }}>
-        ¿No te queda claro este punto?
-      </p>
-      <a
-        href={`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ fontSize: 11, fontWeight: 600, color: T.clay, fontFamily: FB, textDecoration: "none", whiteSpace: "nowrap" }}
-      >
-        Escríbenos y te explicamos →
-      </a>
-    </div>
+    <button
+      onClick={() => togDuda(stepTitle)}
+      style={{
+        marginTop: 16, width: "100%", padding: "10px 16px",
+        display: "flex", alignItems: "center", gap: 10,
+        background: tieneDuda ? T.clayLight : "transparent",
+        border: `1px solid ${tieneDuda ? T.clayBorder : T.hairline}`,
+        cursor: "pointer", outline: "none", transition: "all 0.15s", textAlign: "left",
+      }}
+    >
+      <div style={{
+        width: 13, height: 13, flexShrink: 0,
+        border: `1.5px solid ${tieneDuda ? T.clay : T.borderDark}`,
+        background: tieneDuda ? T.clay : "transparent",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 8, color: "#fff", fontWeight: 700,
+      }}>
+        {tieneDuda ? "✓" : ""}
+      </div>
+      <span style={{ fontSize: 11, color: tieneDuda ? T.clay : T.inkMuted, fontFamily: FB, lineHeight: 1.4 }}>
+        {tieneDuda
+          ? "Marcado para aclarar en la reunión con el arquitecto"
+          : "No me quedó claro este punto — quiero que me lo expliquen"}
+      </span>
+    </button>
   );
 }

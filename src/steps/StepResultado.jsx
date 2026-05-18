@@ -1,29 +1,73 @@
 import { T, FD, FB, FM, fmt, WA, EMAIL } from "../data/tokens";
 import { PROYECTOS } from "../data/proyectos";
 import {
-  TERRENO, COMPLEJIDAD, ESPACIOS, TECHOS, FACHADA, PISOS, COCINA, BANOS,
+  TERRENO, COMPLEJIDAD, SERVICIOS, ESPACIOS, TECHOS,
+  BIOCLIMATICA, FACHADA, CARPINTERIA, VANOS_AMPLITUD, CANCELERIA_CALIDAD,
+  APLANADOS, LAMBRINES, PLAFONES, PISOS, COCINA, BANOS, ELECTRICOS, URGENCIA,
 } from "../data/opciones";
+import { EXTRAS } from "../data/extras";
+import { COSTO_COCHERA_POR_VEHICULO } from "../utils/calcTotal";
 
-function getL(arr, id) { return arr.find(x => x.id === id)?.label || "—"; }
+const L = (arr, id) => arr.find(x => x.id === id)?.label || "—";
+
+function buildResumen(data, c, name, phone) {
+  const extrasLabels = data.extras.length > 0
+    ? data.extras.map(id => EXTRAS.find(x => x.id === id)?.label || id).join(" · ")
+    : "Ninguno";
+  const cocherasLine = (data.cocheras || 0) > 0
+    ? `· Cocheras: ${data.cocheras} vehículo${data.cocheras > 1 ? "s" : ""} (${fmt((data.cocheras || 0) * COSTO_COCHERA_POR_VEHICULO)})`
+    : "";
+  const dudasLine = data.dudas?.length > 0
+    ? `\n⚠️ PUNTOS POR ACLARAR:\n${data.dudas.map(d => `· ${d}`).join("\n")}`
+    : "";
+
+  return [
+    `📐 *CALCULADORA DE COSTOS — LANDA*`,
+    `👤 ${name || "—"}  📞 ${phone || "—"}`,
+    ``,
+    `── PROYECTO ──`,
+    `· Tipo: ${L(PROYECTOS, data.proyecto)}`,
+    `· Superficie: ${data.m2} m²`,
+    ``,
+    `── CONDICIONES ──`,
+    `· Terreno: ${L(TERRENO, data.terreno)}`,
+    `· Concepto: ${L(COMPLEJIDAD, data.complejidad)}`,
+    `· Servicios: ${L(SERVICIOS, data.servicios)}`,
+    ``,
+    `── ESPACIOS ──`,
+    `· Distribución: ${L(ESPACIOS, data.espacios)}`,
+    `· Techos: ${L(TECHOS, data.techos)}`,
+    `· Confort climático: ${L(BIOCLIMATICA, data.bioclimatica)}`,
+    ``,
+    `── FACHADA Y CANCELERÍA ──`,
+    `· Fachada: ${L(FACHADA, data.fachada)}`,
+    `· Apertura de vanos: ${L(VANOS_AMPLITUD, data.vanos_amplitud)}`,
+    `· Sistema cancelería: ${L(CANCELERIA_CALIDAD, data.canceleria_calidad)}`,
+    ``,
+    `── INTERIORES ──`,
+    `· Carpintería: ${L(CARPINTERIA, data.carpinteria)}`,
+    `· Muros: ${L(APLANADOS, data.aplanados)}`,
+    `· Det. muros: ${L(LAMBRINES, data.lambrines)}`,
+    `· Plafones: ${L(PLAFONES, data.plafones)}`,
+    `· Pisos: ${L(PISOS, data.pisos)}`,
+    `· Cocina: ${L(COCINA, data.cocina)}`,
+    `· Baños: ${L(BANOS, data.banos)}`,
+    `· Eléctrico: ${L(ELECTRICOS, data.electricos)}`,
+    ``,
+    `── EXTRAS ──`,
+    `· ${extrasLabels}`,
+    cocherasLine,
+    `· Plazo: ${L(URGENCIA, data.urgencia)}`,
+    dudasLine,
+    ``,
+    `💰 *TOTAL: ${c ? fmt(c.total) : "—"}*`,
+    `📏 ${c ? fmt(Math.round(c.porM2)) : "—"}/m²`,
+    `📊 Rango: ${c ? fmt(c.total * 0.88) : "—"} – ${c ? fmt(c.total * 1.15) : "—"}`,
+  ].filter(l => l !== "").join("\n");
+}
 
 export default function StepResultado({ c, data, name, setName, phone, setPhone, onReset }) {
-  const resumen = c ? [
-    `📐 *CALCULADORA DE COSTOS DE CONSTRUCCIÓN*`,
-    `Cliente: ${name || "—"} · Tel: ${phone || "—"}`,
-    ``,
-    `Proyecto: ${getL(PROYECTOS, data.proyecto)} · ${data.m2} m²`,
-    `Terreno: ${getL(TERRENO, data.terreno)}`,
-    `Complejidad: ${getL(COMPLEJIDAD, data.complejidad)}`,
-    `Espacios: ${getL(ESPACIOS, data.espacios)}`,
-    `Techos: ${getL(TECHOS, data.techos)}`,
-    `Fachada: ${getL(FACHADA, data.fachada)}`,
-    `Pisos: ${getL(PISOS, data.pisos)}`,
-    `Cocina: ${getL(COCINA, data.cocina)} · Baños: ${getL(BANOS, data.banos)}`,
-    ``,
-    `💰 *TOTAL ESTIMADO: ${fmt(c.total)}*`,
-    `📏 ${fmt(Math.round(c.porM2))}/m²`,
-    `📊 Rango: ${fmt(c.total * 0.88)} – ${fmt(c.total * 1.15)}`,
-  ].join("\n") : "";
+  const resumen = c ? buildResumen(data, c, name, phone) : "";
 
   if (!c) return null;
 
@@ -46,9 +90,9 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
         <p style={{ margin: "0 0 20px", opacity: 0.45, fontSize: 11, fontFamily: FB }}>{c.m2} m² · {PROYECTOS.find(p => p.id === data.proyecto)?.label}</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2 }}>
           {[
-            { l: "Por m²",        v: fmt(Math.round(c.porM2)) },
-            { l: "Escenario −12%",v: fmt(c.total * 0.88) },
-            { l: "Escenario +15%",v: fmt(c.total * 1.15) },
+            { l: "Por m²",         v: fmt(Math.round(c.porM2)) },
+            { l: "Escenario −12%", v: fmt(c.total * 0.88) },
+            { l: "Escenario +15%", v: fmt(c.total * 1.15) },
           ].map(m => (
             <div key={m.l} style={{ background: "rgba(247,244,239,0.07)", padding: "10px 12px", borderTop: "1px solid rgba(247,244,239,0.12)" }}>
               <div style={{ fontSize: 8, opacity: 0.5, marginBottom: 3, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: FB }}>{m.l}</div>
@@ -61,17 +105,59 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
         </p>
       </div>
 
+      {/* Resumen de selecciones */}
+      <div style={{ background: T.surface, border: `1px solid ${T.hairline}`, padding: "16px 18px", marginBottom: 2 }}>
+        <p style={{ margin: "0 0 12px", fontWeight: 600, fontSize: 12, color: T.ink, fontFamily: FD }}>Resumen de selecciones</p>
+        {[
+          { l: "Tipo de proyecto",    v: L(PROYECTOS, data.proyecto) },
+          { l: "Superficie",          v: `${data.m2} m²` },
+          { l: "Terreno",             v: L(TERRENO, data.terreno) },
+          { l: "Concepto",            v: L(COMPLEJIDAD, data.complejidad) },
+          { l: "Servicios",           v: L(SERVICIOS, data.servicios) },
+          { l: "Distribución",        v: L(ESPACIOS, data.espacios) },
+          { l: "Techos",              v: L(TECHOS, data.techos) },
+          { l: "Confort climático",   v: L(BIOCLIMATICA, data.bioclimatica) },
+          { l: "Fachada",             v: L(FACHADA, data.fachada) },
+          { l: "Apertura de vanos",   v: L(VANOS_AMPLITUD, data.vanos_amplitud) },
+          { l: "Cancelería",          v: L(CANCELERIA_CALIDAD, data.canceleria_calidad) },
+          { l: "Carpintería",         v: L(CARPINTERIA, data.carpinteria) },
+          { l: "Muros interiores",    v: L(APLANADOS, data.aplanados) },
+          { l: "Detalles en muros",   v: L(LAMBRINES, data.lambrines) },
+          { l: "Plafones",            v: L(PLAFONES, data.plafones) },
+          { l: "Pisos",               v: L(PISOS, data.pisos) },
+          { l: "Cocina",              v: L(COCINA, data.cocina) },
+          { l: "Baños",               v: L(BANOS, data.banos) },
+          { l: "Eléctrico",           v: L(ELECTRICOS, data.electricos) },
+          { l: "Plazo de obra",       v: L(URGENCIA, data.urgencia) },
+        ].map(r => (
+          <div key={r.l} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "5px 0", borderBottom: `1px solid ${T.hairline}` }}>
+            <span style={{ fontSize: 10, color: T.inkMuted, fontFamily: FB, flexShrink: 0 }}>{r.l}</span>
+            <span style={{ fontSize: 10, fontWeight: 500, color: T.ink, fontFamily: FB, textAlign: "right" }}>{r.v}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Dudas del cliente */}
+      {data.dudas?.length > 0 && (
+        <div style={{ background: T.clayLight, borderLeft: `3px solid ${T.clay}`, padding: "14px 16px", marginBottom: 2 }}>
+          <p style={{ margin: "0 0 8px", fontWeight: 600, fontSize: 11, color: T.clay, fontFamily: FD }}>⚠ Puntos a aclarar en la reunión</p>
+          {data.dudas.map(d => (
+            <div key={d} style={{ fontSize: 11, color: "#7A5C20", fontFamily: FB, lineHeight: 1.6 }}>· {d}</div>
+          ))}
+        </div>
+      )}
+
       {/* Desglose por partidas */}
       <div style={{ background: T.surface, borderLeft: `3px solid ${T.moss}`, padding: "18px 20px", marginBottom: 2 }}>
         <p style={{ margin: "0 0 14px", fontWeight: 600, fontSize: 12, color: T.ink, fontFamily: FD }}>Desglose por partidas</p>
         {[
-          { l: "Estructura, cimentación y muros (35%)",           v: c.costos.estructura },
-          { l: "Instalaciones hidro-sanitarias y eléctricas (16%)",v: c.costos.instalaciones },
-          { l: "Acabados: pisos, aplanados y plafones (18%)",      v: c.costos.acabados },
-          { l: "Cocina y baños (10%)",                              v: c.costos.cocina_banos },
-          { l: "Cancelería y ventanas (8%)",                        v: c.costos.canceleria },
-          { l: "Carpintería y puertas interiores (7%)",             v: c.costos.carpinteria },
-          { l: "Fachada y recubrimientos exteriores (6%)",          v: c.costos.fachada },
+          { l: "Estructura, cimentación y muros (35%)",            v: c.costos.estructura },
+          { l: "Instalaciones hidro-sanitarias y eléctricas (16%)", v: c.costos.instalaciones },
+          { l: "Acabados: pisos, aplanados y plafones (18%)",       v: c.costos.acabados },
+          { l: "Cocina y baños (10%)",                               v: c.costos.cocina_banos },
+          { l: "Cancelería y ventanas (8%)",                         v: c.costos.canceleria },
+          { l: "Carpintería y puertas interiores (7%)",              v: c.costos.carpinteria },
+          { l: "Fachada y recubrimientos exteriores (6%)",           v: c.costos.fachada },
         ].map(r => (
           <div key={r.l} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.hairline}` }}>
             <span style={{ fontSize: 11, color: T.inkSub, fontFamily: FB, flex: 1, paddingRight: 10 }}>{r.l}</span>
@@ -89,8 +175,14 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
         <p style={{ margin: "0 0 14px", fontWeight: 600, fontSize: 12, color: T.ink, fontFamily: FD }}>Costos adicionales</p>
         {c.costoExtras > 0 && (
           <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.hairline}` }}>
-            <span style={{ fontSize: 11, color: T.inkSub, fontFamily: FB }}>Extras seleccionados (costo fijo estimado)</span>
+            <span style={{ fontSize: 11, color: T.inkSub, fontFamily: FB }}>Extras seleccionados</span>
             <span style={{ fontSize: 11, fontWeight: 600, color: T.ink, fontFamily: FM }}>{fmt(c.costoExtras)}</span>
+          </div>
+        )}
+        {c.costoCocheras > 0 && (
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.hairline}` }}>
+            <span style={{ fontSize: 11, color: T.inkSub, fontFamily: FB }}>Cocheras techadas ({data.cocheras} vehículo{data.cocheras > 1 ? "s" : ""})</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: T.ink, fontFamily: FM }}>{fmt(c.costoCocheras)}</span>
           </div>
         )}
         <div style={{ padding: "7px 0", borderBottom: `1px solid ${T.hairline}` }}>
@@ -99,7 +191,7 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
             <span style={{ fontSize: 11, fontWeight: 600, color: T.ink, fontFamily: FM }}>{fmt(c.indirectos)}</span>
           </div>
           <div style={{ fontSize: 10, color: T.inkMuted, fontFamily: FB, lineHeight: 1.5 }}>
-            Incluye: honorarios de arquitecto · licencia de construcción · permisos municipales · supervisión técnica · IMSS y prestaciones
+            Incluye: honorarios de arquitecto · licencia de construcción · permisos municipales · supervisión técnica
           </div>
         </div>
         <div style={{ background: "#EEF4FF", borderLeft: `2px solid #93C5FD`, padding: "10px 12px", margin: "10px 0" }}>
@@ -136,8 +228,8 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
 
       {/* Enviar */}
       <div style={{ background: T.surface, border: `1px solid ${T.hairline}`, borderLeft: `3px solid ${T.moss}`, padding: "18px 20px", marginBottom: 2 }}>
-        <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 12, color: T.ink, fontFamily: FD }}>Enviar mi selección al arquitecto</p>
-        <p style={{ margin: "0 0 14px", fontSize: 11, color: T.inkSub, fontFamily: FB, lineHeight: 1.6 }}>Déjanos tus datos y te contactamos para dar seguimiento a tu proyecto.</p>
+        <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 12, color: T.ink, fontFamily: FD }}>Enviar selecciones al arquitecto</p>
+        <p style={{ margin: "0 0 14px", fontSize: 11, color: T.inkSub, fontFamily: FB, lineHeight: 1.6 }}>Se enviará el resumen completo con todas tus elecciones.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
           <input type="text" placeholder="Tu nombre completo" value={name} onChange={e => setName(e.target.value)} style={{ padding: "10px 13px", border: `1px solid ${T.hairline}`, fontSize: 13, color: T.ink, background: T.bg, outline: "none", fontFamily: FB }} />
           <input type="tel" placeholder="Tu teléfono (WhatsApp)" value={phone} onChange={e => setPhone(e.target.value)} style={{ padding: "10px 13px", border: `1px solid ${T.hairline}`, fontSize: 13, color: T.ink, background: T.bg, outline: "none", fontFamily: FB }} />
@@ -155,7 +247,7 @@ export default function StepResultado({ c, data, name, setName, phone, setPhone,
       </div>
 
       <button onClick={onReset} style={{ width: "100%", padding: "12px", border: `1px solid ${T.hairline}`, background: "transparent", color: T.inkSub, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: FB, letterSpacing: "0.04em", marginTop: 2 }}>
-        🔄 Regenerar cotización
+        🔄 Nueva cotización
       </button>
     </>
   );

@@ -1,11 +1,13 @@
 import { PARTIDAS, PROYECTOS } from "../data/proyectos";
 import {
   TERRENO, COMPLEJIDAD, ESPACIOS, TECHOS, SERVICIOS, BIOCLIMATICA,
-  ELECTRICOS, FACHADA, CARPINTERIA, VENTANAS,
+  ELECTRICOS, FACHADA, CARPINTERIA, VANOS_AMPLITUD, CANCELERIA_CALIDAD,
   APLANADOS, LAMBRINES, PLAFONES, PISOS,
   COCINA, BANOS, URGENCIA,
 } from "../data/opciones";
 import { EXTRAS } from "../data/extras";
+
+const COSTO_COCHERA_POR_VEHICULO = 52000;
 
 export function calcTotal(d) {
   if (!d.proyecto || !d.m2) return null;
@@ -13,7 +15,7 @@ export function calcTotal(d) {
   const proyecto = PROYECTOS.find(p => p.id === d.proyecto);
   if (!proyecto) return null;
 
-  const { base_m2, } = proyecto;
+  const { base_m2 } = proyecto;
   const m2 = d.m2;
 
   const costos = {};
@@ -28,13 +30,16 @@ export function calcTotal(d) {
   costos.estructura    *= find(ESPACIOS,    d.espacios);
   costos.estructura    *= find(TECHOS,      d.techos);
 
-  costos.instalaciones *= find(SERVICIOS,   d.servicios);
-  costos.instalaciones *= find(BIOCLIMATICA,d.bioclimatica);
-  costos.instalaciones *= find(ELECTRICOS,  d.electricos);
+  costos.instalaciones *= find(SERVICIOS,    d.servicios);
+  costos.instalaciones *= find(BIOCLIMATICA, d.bioclimatica);
+  costos.instalaciones *= find(ELECTRICOS,   d.electricos);
 
-  costos.fachada       *= find(FACHADA,     d.fachada);
-  costos.carpinteria   *= find(CARPINTERIA, d.carpinteria);
-  costos.canceleria    *= find(VENTANAS,    d.ventanas);
+  costos.fachada      *= find(FACHADA,     d.fachada);
+  costos.carpinteria  *= find(CARPINTERIA, d.carpinteria);
+
+  // Cancelería: apertura de vanos × calidad del sistema
+  costos.canceleria *= find(VANOS_AMPLITUD,    d.vanos_amplitud);
+  costos.canceleria *= find(CANCELERIA_CALIDAD, d.canceleria_calidad);
 
   const fAplan = find(APLANADOS, d.aplanados);
   const fLamb  = find(LAMBRINES, d.lambrines);
@@ -54,11 +59,15 @@ export function calcTotal(d) {
     return a + (e ? e.costo_fijo : 0);
   }, 0);
 
-  const subtotal    = costoObra + costoExtras;
-  const indirectos  = subtotal * 0.17;
-  const total       = subtotal + indirectos;
-  const porM2       = total / m2;
-  const costoBase   = base_m2 * m2;
+  const costoCocheras = (d.cocheras || 0) * COSTO_COCHERA_POR_VEHICULO;
 
-  return { costos, costoDirecto, costoObra, costoExtras, indirectos, total, porM2, costoBase, m2 };
+  const subtotal   = costoObra + costoExtras + costoCocheras;
+  const indirectos = subtotal * 0.17;
+  const total      = subtotal + indirectos;
+  const porM2      = total / m2;
+  const costoBase  = base_m2 * m2;
+
+  return { costos, costoDirecto, costoObra, costoExtras, costoCocheras, indirectos, total, porM2, costoBase, m2 };
 }
+
+export { COSTO_COCHERA_POR_VEHICULO };

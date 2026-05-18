@@ -118,22 +118,31 @@ export const CARPINTERIA = [
    nota:"Herraje europeo especializado. El elemento de entrada más impactante que existe.", partida:"carpinteria", factor:1.65},
 ];
 
-export const VENTANAS = [
-  {id:"convencional",icon:"🪟", label:"Ventanas convencionales",             tag:"Sin sobrecosto",
-   desc:"Dimensiones estándar de 1.0 a 1.5 m de ancho. Buena relación entre costo y beneficio.",
-   nota:"Fáciles de combinar con cortinas, persianas y mosquiteras.", partida:"canceleria", factor:1.0},
-  {id:"amplios",     icon:"🖼", label:"Ventanales amplios",                  tag:"+1.5% del total",
-   desc:"Vanos de 1.8 a 2.5 m de ancho. Mayor luminosidad y conexión visual con el exterior.",
-   nota:"Requiere perfil de cancelería de mayor dimensión y vidrio más grueso.", partida:"canceleria", factor:1.18},
-  {id:"piso_techo",  icon:"⬍", label:"Ventanas de piso a techo",            tag:"+2.5% del total",
-   desc:"Del suelo hasta la losa. Máxima entrada de luz natural y difuminan el límite entre interior y exterior.",
-   nota:"En climas cálidos requieren control solar para evitar el efecto invernadero interior.", partida:"canceleria", factor:1.30},
-  {id:"celosias",    icon:"⊞", label:"Celosías o vanos con profundidad",    tag:"+1.5% del total",
-   desc:"Elementos de lamas o marcos profundos que filtran la luz y generan sombra. Función bioclimática y valor estético.",
-   nota:"Muy utilizados en la arquitectura contemporánea de Querétaro.", partida:"canceleria", factor:1.18},
-  {id:"mixta_ven",   icon:"◈", label:"Combinación de tipos de vanos",       tag:"+2% del total",
-   desc:"Diferentes tipos de ventanas según la orientación y el uso de cada espacio del proyecto.",
-   nota:"Permite una respuesta específica y óptima para cada fachada.", partida:"canceleria", factor:1.24},
+export const VANOS_AMPLITUD = [
+  {id:"introspectivo",icon:"🔳", label:"Introspectivo — vanos discretos",    tag:"BASE",
+   desc:"Ventanas de menor dimensión. El interior se siente protegido, íntimo y con poca exposición al exterior.",
+   nota:"Ideal para clientes que valoran la privacidad o el recogimiento. El diseño se concentra hacia adentro.", partida:"canceleria", factor:0.85},
+  {id:"equilibrado",  icon:"🪟", label:"Equilibrado",                         tag:"Sin sobrecosto",
+   desc:"Balance entre apertura y privacidad. Buena iluminación natural sin exceso de exposición al exterior.",
+   nota:"La opción más versátil. Permite trabajar con vanos de diferentes dimensiones según cada fachada.", partida:"canceleria", factor:1.0},
+  {id:"abierto",      icon:"🖼", label:"Abierto hacia el exterior",           tag:"+1.5% del total",
+   desc:"Vanos amplios que conectan visualmente con el jardín, el paisaje o el contexto. Mayor luminosidad.",
+   nota:"Muy efectivo cuando el entorno exterior merece ser parte del interior.", partida:"canceleria", factor:1.18},
+  {id:"panoramico",   icon:"⬍", label:"Panorámico — máxima apertura",        tag:"+2.5% del total",
+   desc:"La mayor relación posible entre interior y exterior. Vanos de gran dimensión como elemento protagónico de la fachada.",
+   nota:"El límite entre adentro y afuera se disuelve. Requiere control solar bien resuelto.", partida:"canceleria", factor:1.30},
+];
+
+export const CANCELERIA_CALIDAD = [
+  {id:"aluminio_nacional",  icon:"⬜", label:"Aluminio nacional",                  tag:"Sin sobrecosto",
+   desc:"Perfil de aluminio de fabricación local. Funcional, económico y disponible en muchos colores y acabados.",
+   nota:"El estándar del mercado mexicano. Buena relación costo-beneficio para la mayoría de proyectos.", partida:"canceleria", factor:1.0},
+  {id:"aluminio_europeo",   icon:"▦",  label:"Aluminio europeo",                   tag:"+1.5% del total",
+   desc:"Perfiles de mayor sección y precisión con mejor sellado, hermeticidad y acabados. Sistemas como Wicona, Cortizo o equivalentes.",
+   nota:"Notablemente superior en hermeticidad, durabilidad y aislamiento. La diferencia se percibe en el uso.", partida:"canceleria", factor:1.20},
+  {id:"alto_rendimiento",   icon:"★",  label:"Sistema de alto rendimiento",        tag:"+3% del total",
+   desc:"Vidrio doble (DVH) o triple con cámara de aire o gas. Aísla el ruido exterior y reduce la transferencia de calor de manera importante.",
+   nota:"Recomendado en zonas ruidosas, climas extremos o proyectos de alto estándar energético y de confort.", partida:"canceleria", factor:1.45},
 ];
 
 export const APLANADOS = [
