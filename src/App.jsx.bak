@@ -1,0 +1,1477 @@
+import { useState, useRef, useEffect } from "react";
+
+// ─── DESIGN SYSTEM ────────────────────────────────────────────────────────────
+// Escandinavo · Japones contemporáneo · Mexicano · Bauhaus · Editorial
+const T = {
+  // Palette
+  bg:          "#F7F4EF",   // hueso cálido
+  surface:     "#FDFCF9",   // blanco marfil
+  card:        "#FFFFFF",
+  border:      "#DDD8CF",   // gris piedra suave
+  borderDark:  "#B8B2A7",
+  hairline:    "#E8E4DC",   // línea editorial
+  // Accent system
+  ink:         "#1C1A17",   // negro carbón — textos principales
+  inkSub:      "#5C574F",   // tinta media
+  inkMuted:    "#9C9589",   // tinta suave
+  moss:        "#3A5436",   // verde musgo — acento primario
+  mossLight:   "#EDF2EB",   // verde muy suave
+  mossMid:     "#5C7A58",
+  clay:        "#B5924A",   // dorado arcilla — acento secundario
+  clayLight:   "#F7F0E4",
+  clayBorder:  "#D4B06A",
+  stone:       "#7A7468",   // gris piedra
+  // Semantic
+  danger:      "#9C3A2C",
+  success:     "#3A6B4A",
+  warning:     "#9C7030",
+};
+
+// Font stack — Garet display, HK Grotesk body
+// Loaded via @font-face from CDN in <style> tag
+const FONT_DISPLAY = "'Garet', 'HK Grotesk', 'DM Sans', sans-serif";
+const FONT_BODY    = "'HK Grotesk', 'DM Sans', sans-serif";
+const FONT_MONO    = "'JetBrains Mono', monospace";
+
+const fmt = n => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n);
+const pctFmt = n => (n >= 0 ? "+" : "") + (n * 100).toFixed(0) + "%";
+
+// ─── ALL STEPS ────────────────────────────────────────────────────────────────
+// Groups: A=base, B=design, C=extras/result
+const STEPS = [
+  // ── BASE ──
+  { id: "proyecto",     group: "A", title: "Tu proyecto",            subtitle: "¿Qué vas a construir?" },
+  { id: "superficie",   group: "A", title: "Superficie",             subtitle: "¿De qué tamaño?" },
+  { id: "terreno",      group: "A", title: "El terreno",             subtitle: "¿Cómo es el terreno?" },
+  { id: "complejidad",  group: "A", title: "Forma del proyecto",     subtitle: "¿Qué tan complejo es el diseño?" },
+  { id: "servicios",    group: "A", title: "Servicios disponibles",  subtitle: "¿Con qué cuentas en el terreno?" },
+  // ── DISEÑO ──
+  { id: "espacios",     group: "B", title: "Espacios y distribución", subtitle: "¿Cómo quieres vivir el espacio?" },
+  { id: "techos",       group: "B", title: "Techos y cubiertas",     subtitle: "¿Qué tipo de cubierta?" },
+  { id: "bioclimatica", group: "B", title: "Estrategias bioclimáticas", subtitle: "¿Cómo se comporta tu casa con el clima?" },
+  { id: "fachada",      group: "B", title: "Fachada y exteriores",   subtitle: "¿Cómo se verá por fuera?" },
+  { id: "carpinteria",  group: "B", title: "Carpintería y puertas",  subtitle: "¿Qué tipo de puertas interiores?" },
+  { id: "ventanas",     group: "B", title: "Ventanas y vanos",       subtitle: "¿Cómo entra la luz?" },
+  { id: "aplanados",    group: "B", title: "Aplanados y muros",      subtitle: "¿Qué material y acabado por zona?" },
+  { id: "lambrines",    group: "B", title: "Lambrines interiores",    subtitle: "¿Algún detalle de carpintería en muros?" },
+  { id: "plafones",     group: "B", title: "Plafones",                subtitle: "¿Qué acabado en techos interiores?" },
+  // ── ACABADOS + EXTRAS ──
+  { id: "pisos",        group: "C", title: "Pisos",                  subtitle: "¿Qué recubrimiento en el piso?" },
+  { id: "cocina",       group: "C", title: "Cocina",                  subtitle: "¿Qué nivel de acabado en cocina?" },
+  { id: "banos",        group: "C", title: "Baños",                   subtitle: "¿Qué nivel de acabado en baños?" },
+  { id: "electricos",   group: "C", title: "Eléctrico y luminarias",  subtitle: "¿Qué tipo de apagadores, contactos y lámparas?" },
+  { id: "urgencia",     group: "C", title: "Plazo de obra",          subtitle: "¿En cuánto tiempo?" },
+  { id: "extras",       group: "C", title: "Extras",                 subtitle: "¿Algo más?" },
+  { id: "resultado",    group: "C", title: "Tu presupuesto",         subtitle: "" },
+];
+
+const TOTAL_NAV = STEPS.length - 1;
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const PROYECTOS = [
+  { id: "casa_propia",     icon: "🏠", label: "Casa habitación",       desc: "Tu vivienda principal para vivir en familia.", base: 12500 },
+  { id: "residencial",     icon: "💎", label: "Residencial premium",   desc: "Residencia de alto nivel con acabados selectos.", base: 22000 },
+  { id: "casa_vacacional", icon: "🌴", label: "Casa vacacional",       desc: "Segunda residencia para descanso o renta.", base: 14000 },
+  { id: "local_comercial", icon: "🏪", label: "Local o negocio",       desc: "Espacio para atender clientes o vender.", base: 11000 },
+  { id: "oficinas",        icon: "🏢", label: "Oficinas corporativas", desc: "Espacio de trabajo profesional.", base: 15500 },
+  { id: "mixto",           icon: "🏗", label: "Uso mixto",             desc: "Habitacional + comercial combinados.", base: 14000 },
+];
+
+const TERRENO_OPTS = [
+  { id: "plano",     icon: "⬜", label: "Terreno plano",                  tag: "Sin sobrecosto", desc: "Sin pendiente, fácil acceso para maquinaria. Escenario más eficiente.", mult: 1.0 },
+  { id: "pendiente", icon: "📐", label: "Con pendiente (> 15%)",          tag: "+8%", desc: "Requiere muros de contención y cimentación especial. Puede generar vistas espectaculares.", mult: 1.08 },
+  { id: "irregular", icon: "🔺", label: "Forma irregular o accidentada",  tag: "+12%", desc: "Geometría complicada o desniveles mixtos. Soluciones estructurales personalizadas.", mult: 1.12 },
+  { id: "suelo",     icon: "⚠️", label: "Suelo blando o relleno",         tag: "+15%", desc: "Requiere estudio de mecánica de suelos y cimentación profunda.", mult: 1.15 },
+];
+
+const COMPLEJIDAD_OPTS = [
+  { id: "simple",   icon: "◻", label: "Diseño sencillo",              tag: "Sin sobrecosto", desc: "Planta rectangular, techos simples. La forma más eficiente en materiales.", mult: 1.0 },
+  { id: "media",    icon: "◼", label: "Diseño intermedio",            tag: "+7%", desc: "Algunos voladizos, mezcla de alturas. Mayor coordinación estructural.", mult: 1.07 },
+  { id: "compleja", icon: "★", label: "Diseño arquitectónico libre",  tag: "+18%", desc: "Geometría libre, curvas, grandes voladizos o dobles alturas generalizadas.", mult: 1.18 },
+];
+
+const SERVICIOS_OPTS = [
+  { id: "todos",       icon: "✅", label: "Todos disponibles",             desc: "Agua, drenaje, luz y gas frente al terreno.", pct: 0.0 },
+  { id: "sin_gas",     icon: "🔵", label: "Sin gas de red",               desc: "Usaré tanque estacionario de gas LP.", pct: 0.015 },
+  { id: "sin_drenaje", icon: "🟡", label: "Sin drenaje municipal",        desc: "Necesita fosa séptica o biodigestor.", pct: 0.04 },
+  { id: "sin_agua",    icon: "🟠", label: "Sin toma de agua potable",     desc: "Requiere pozo, pipa o captación pluvial.", pct: 0.05 },
+  { id: "sin_luz",     icon: "🔴", label: "Sin red eléctrica cercana",    desc: "Extensión de red CFE o solución solar autónoma.", pct: 0.06 },
+];
+
+// ── BLOQUES DE DISEÑO ──────────────────────────────────────────────────────────
+
+const ESPACIOS_OPTS = [
+  {
+    id: "convencional", icon: "🟦", label: "Distribución convencional",
+    tag: "Sin sobrecosto",
+    desc: "Cuartos bien definidos, techos estándar de 2.40–2.60 m, separación clara entre áreas. Fácil de construir y amueblar.",
+    nota: "Ideal si valoras funcionalidad y eficiencia de espacio.",
+    pct: 0.0,
+  },
+  {
+    id: "abierta", icon: "🔲", label: "Planta abierta y fluida",
+    tag: "+5%",
+    desc: "Sala, comedor y cocina integrados, pocos muros divisorios, sensación de amplitud. Requiere vigas o trabes para librar vanos.",
+    nota: "Muy popular en casas contemporáneas. Favorece la convivencia.",
+    pct: 0.05,
+  },
+  {
+    id: "dobles", icon: "⬆️", label: "Dobles alturas o espacios escultóricos",
+    tag: "+14%",
+    desc: "Alturas de 4–6 m en áreas clave, vacíos visuales entre niveles, escaleras como elemento de diseño. Gran impacto visual.",
+    nota: "Requiere estructura especial y mayor inversión en iluminación.",
+    pct: 0.14,
+  },
+  {
+    id: "privacidad", icon: "🔒", label: "Alta privacidad y zonificación",
+    tag: "+6%",
+    desc: "Zonas claramente separadas (social / privada / servicio), con accesos independientes y muros acústicos. Ideal para familias grandes.",
+    nota: "Requiere mayor metraje de circulaciones y muros divisorios.",
+    pct: 0.06,
+  },
+];
+
+const TECHOS_OPTS = [
+  {
+    id: "plano",      icon: "▬", label: "Losa plana tradicional",
+    tag: "Sin sobrecosto",
+    desc: "Losa de concreto horizontal. La solución más común en México, fácil de ampliar a futuro y económica.",
+    nota: "Requiere buen impermeabilizante y pendientes mínimas para drenaje.",
+    pct: 0.0,
+  },
+  {
+    id: "inclinado",  icon: "🏔", label: "Cubierta inclinada",
+    tag: "+8%",
+    desc: "Techo a dos o más aguas con teja, lámina o panel. Excelente para climas lluviosos, mejor ventilación natural bajo cubierta.",
+    nota: "Puede incorporar entretecho habitable o espacio para instalaciones.",
+    pct: 0.08,
+  },
+  {
+    id: "verde",      icon: "🌿", label: "Techo verde o jardín en azotea",
+    tag: "+18%",
+    desc: "Cubierta con sustrato vegetal, impermeabilización especial y sistema de drenaje. Excelente aislamiento térmico y estética notable.",
+    nota: "Reduce hasta 30% la ganancia de calor solar en el interior.",
+    pct: 0.18,
+  },
+  {
+    id: "tecnica",    icon: "⚙️", label: "Losa técnica (instalaciones visibles / industrial)",
+    tag: "+10%",
+    desc: "Estructura metálica o concreto aparente con instalaciones a la vista. Estética industrial contemporánea. Requiere mayor coordinación.",
+    nota: "Popular en oficinas, lofts y proyectos de diseño audaz.",
+    pct: 0.10,
+  },
+  {
+    id: "mixta",      icon: "◈", label: "Cubierta mixta o asimétrica",
+    tag: "+13%",
+    desc: "Combinación de planos inclinados, planos horizontales y voladizos en distintas alturas. Alta expresividad arquitectónica.",
+    nota: "Requiere detallado cuidadoso en encuentros y desagüe.",
+    pct: 0.13,
+  },
+];
+
+const BIOCLIMATICA_OPTS = [
+  {
+    id: "ninguna", icon: "○", label: "Sin estrategias bioclimáticas",
+    tag: "Sin sobrecosto",
+    desc: "Diseño convencional sin énfasis en confort climático pasivo. Se depende de A/C y calefacción para regular la temperatura interior.",
+    nota: "Puede implicar mayores costos operativos de energía a largo plazo.",
+    incluye: "",
+    pct: 0.0,
+  },
+  {
+    id: "basico", icon: "🌿", label: "Paquete básico",
+    tag: "+4%",
+    desc: "Soluciones simples que mejoran el confort sin costo elevado. Orientación correcta del proyecto, aleros para sombra y ventilación cruzada con aberturas bien ubicadas.",
+    nota: "Reduce hasta un 20% la necesidad de A/C en climas templados.",
+    incluye: "Orientación solar · Aleros y voladizos · Ventilación cruzada · Vegetación de sombra",
+    pct: 0.04,
+  },
+  {
+    id: "intermedio", icon: "🌱", label: "Paquete intermedio",
+    tag: "+9%",
+    desc: "Agrega a las estrategias básicas: control solar con celosías o brise-soleil en fachadas críticas, masa térmica en muros, plafones ventilados y cubierta con aislamiento térmico.",
+    nota: "Logra confort natural en climas semicálidos sin aire acondicionado la mayor parte del año.",
+    incluye: "Todo el básico · Celosías / brise-soleil · Masa térmica · Aislamiento de cubierta · Plafón ventilado",
+    pct: 0.09,
+  },
+  {
+    id: "avanzado", icon: "🌳", label: "Paquete avanzado",
+    tag: "+15%",
+    desc: "Diseño pasivo integral: estudio solar y de vientos, muros de inercia térmica, captación pluvial, cubierta verde o panel de alto aislamiento, y materiales de bajo impacto ambiental.",
+    nota: "El proyecto más eficiente energéticamente. Requiere estudio especializado y coordinación desde el diseño.",
+    incluye: "Todo el intermedio · Estudio solar y de vientos · Cubierta verde o panel SIP · Captación pluvial · Materiales certificados",
+    pct: 0.15,
+  },
+];
+
+const FACHADA_OPTS = [
+  {
+    id: "aplanado", icon: "⬜", label: "Aplanado pintado",
+    tag: "Sin sobrecosto",
+    desc: "Acabado de yeso o cemento-arena con pintura exterior. El más económico, fácil de mantener y repintar.",
+    nota: "Amplia variedad de colores y texturas de pintura.",
+    pct: 0.0,
+  },
+  {
+    id: "concreto_ap", icon: "▦", label: "Concreto aparente",
+    tag: "+7%",
+    desc: "Muros de concreto visto sin recubrimiento. Requiere cimbra de alta calidad y control estricto en el vaciado. Estética contemporánea y robusta.",
+    nota: "Exige mayor precisión en la ejecución. Sin posibilidad de corrección.",
+    pct: 0.07,
+  },
+  {
+    id: "piedra",   icon: "🪨", label: "Piedra natural o cantera",
+    tag: "+15%",
+    desc: "Recubrimiento de piedra volcánica, cantera, chiluca o similar. Calidez, textura y conexión con materiales locales.",
+    nota: "Material con altísima durabilidad. Identidad regional fuerte.",
+    pct: 0.15,
+  },
+  {
+    id: "madera",   icon: "🪵", label: "Madera o bambú",
+    tag: "+12%",
+    desc: "Tablones o lamas de madera tratada en fachada o techos. Calidez única pero requiere mantenimiento periódico (aceite o barniz).",
+    nota: "Popular en proyectos contemporáneos y ecológicos.",
+    pct: 0.12,
+  },
+  {
+    id: "mixta_fach", icon: "◈", label: "Fachada mixta (dos o más materiales)",
+    tag: "+18%",
+    desc: "Combinación de aplanado con piedra, madera, concreto aparente u otros. Alto impacto visual, requiere detallado fino de uniones.",
+    nota: "El nivel de diseño más expresivo en fachada.",
+    pct: 0.18,
+  },
+];
+
+const CARPINTERIA_OPTS = [
+  {
+    id: "estandar", icon: "🚪", label: "Puertas estándar (2.10 m)",
+    tag: "Sin sobrecosto",
+    desc: "Puertas de tambor o MDF de 2.10 m de altura, chapa y marco de madera o aluminio estándar. Funcional y económico.",
+    nota: "Amplia disponibilidad en cualquier carpintería local.",
+    pct: 0.0,
+  },
+  {
+    id: "alta",    icon: "🏛", label: "Puertas de piso a techo (sin cerramiento)",
+    tag: "+10%",
+    desc: "Puertas de 2.60–3.00 m que llegan hasta la losa sin marco visible. Efecto de continuidad visual entre espacios. Requiere estructura precisa.",
+    nota: "Muy sofisticado. Elimina el 'quiebre' visual sobre la puerta.",
+    pct: 0.10,
+  },
+  {
+    id: "madera_s", icon: "🌳", label: "Madera sólida a medida",
+    tag: "+20%",
+    desc: "Puertas de cedro, encino, pino u otras maderas sólidas diseñadas a medida. Peso, solidez y carácter únicos.",
+    nota: "Requiere carpintero especializado y tiempo de fabricación.",
+    pct: 0.20,
+  },
+  {
+    id: "pivote",  icon: "↻", label: "Puertas pivotantes o de diseño especial",
+    tag: "+25%",
+    desc: "Puertas que giran sobre eje vertical centrado o descentrado. Gran dimensión y presencia escultórica. Herraje europeo especializado.",
+    nota: "Elemento arquitectónico de alto impacto. Requiere detallado estructural.",
+    pct: 0.25,
+  },
+];
+
+const VENTANAS_OPTS = [
+  {
+    id: "convencional", icon: "🪟", label: "Ventanas convencionales",
+    tag: "Sin sobrecosto",
+    desc: "Ventanas de dimensiones estándar (aprox. 1.0–1.5 m de ancho), bien proporcionadas. Buena relación costo-beneficio.",
+    nota: "Fáciles de persianas, cortinas y mantenimiento.",
+    pct: 0.0,
+  },
+  {
+    id: "amplios",   icon: "🖼", label: "Ventanales amplios (paños grandes)",
+    tag: "+10%",
+    desc: "Vanos de 1.8–2.5 m de ancho con vidrio de gran dimensión. Mayor luminosidad y conexión visual con el exterior.",
+    nota: "Requiere cancelería de mayor perfil y vidrio más grueso.",
+    pct: 0.10,
+  },
+  {
+    id: "piso_techo", icon: "⬍", label: "Ventanas de piso a techo",
+    tag: "+18%",
+    desc: "Vanos que van del suelo hasta la losa. Máxima entrada de luz, difuminan el límite interior-exterior. Alto impacto espacial.",
+    nota: "Requieren cancelería estructural y, en climas cálidos, control solar.",
+    pct: 0.18,
+  },
+  {
+    id: "celosias",  icon: "⊞", label: "Celosías, persianas o vanos con profundidad",
+    tag: "+12%",
+    desc: "Vanos con marcos profundos, celosías de madera o concreto, o sistemas de lamas orientables. Filtran la luz y dan textura a la fachada.",
+    nota: "Combinan función bioclimática y valor estético.",
+    pct: 0.12,
+  },
+  {
+    id: "mixta_ven",  icon: "◈", label: "Combinación de tipos de vanos",
+    tag: "+15%",
+    desc: "Mezcla intencional de ventanas convencionales, ventanales y vanos especiales según orientación y programa.",
+    nota: "Permite respuesta específica a cada fachada y uso.",
+    pct: 0.15,
+  },
+];
+
+// Aplanados: el cliente define material base + zonas especiales
+const APLANADOS_BASE = [
+  {
+    id: "yeso",     icon: "⬜", label: "Yeso liso en todo el proyecto",
+    tag: "Sin sobrecosto",
+    desc: "Acabado liso, uniforme y brillante en muros y plafones. El estándar de calidad en México — paredes perfectas, sin textura, listas para pintar.",
+    nota: "Habitaciones, pasillos, baños y áreas comunes en yeso. Base ideal para cualquier decoración posterior.",
+    pct: 0.0,
+  },
+  {
+    id: "estuco_comunes", icon: "▦", label: "Yeso en habitaciones · Estuco en áreas comunes",
+    tag: "+5%",
+    desc: "Las habitaciones y baños llevan yeso liso. Sala, comedor, cocina y pasillos principales llevan estuco fino o semi-liso pigmentado.",
+    nota: "El estuco da carácter a los espacios de convivencia y puede ser pigmentado en masa — sin pintura adicional.",
+    pct: 0.05,
+  },
+  {
+    id: "expuesto_acento", icon: "▧", label: "Yeso + Estuco + Muro expuesto de acento",
+    tag: "+12%",
+    desc: "Habitaciones en yeso, áreas comunes en estuco, y un muro específico en concreto aparente o tabique visto como elemento de diseño.",
+    nota: "El muro expuesto funciona como pieza escultórica. Requiere precisión constructiva — sin margen de corrección.",
+    pct: 0.12,
+  },
+  {
+    id: "natural_acento", icon: "🌿", label: "Yeso + Estuco + Detalle en material natural",
+    tag: "+15%",
+    desc: "Habitaciones en yeso, áreas comunes en estuco, y zonas clave con barro, tepetate o piedra natural en muro. Calidez y conexión con materiales locales.",
+    nota: "Requiere maestros especializados en aplicación de materiales naturales.",
+    pct: 0.15,
+  },
+  {
+    id: "diseno_integral", icon: "◈", label: "Diseño integral de muros por zona",
+    tag: "+20%",
+    desc: "Cada espacio tiene su propio acabado: yeso en recámaras, estuco en estancia, concreto aparente en sala, muro de piedra o madera en comedor. Proyecto de interiorismo completo.",
+    nota: "El resultado más expresivo. Requiere plano de acabados y coordinación con interiorista.",
+    pct: 0.20,
+  },
+];
+
+// Lambrines: extra adicional a la elección base
+const LAMBRINES_OPTS = [
+  { id: "ninguno",   icon: "○", label: "Sin lambrines",               desc: "Solo aplanados en muros, sin elementos divisorios de carpintería.", pct: 0.0 },
+  { id: "parciales", icon: "▬", label: "Lambrines parciales (h=1.20 m)", desc: "Remate inferior de madera, MDF o PVC en pasillos, escaleras o baños. Da elegancia y protege el muro.", pct: 0.04 },
+  { id: "completos", icon: "▮", label: "Lambrines de piso a techo",   desc: "Paneles de madera, MDF o chapa que cubren el muro completo. Efecto cálido y contemporáneo. Puede incluir puertas ocultas.", pct: 0.09 },
+  { id: "diseno",    icon: "◈", label: "Lambrines de diseño especial", desc: "Paneles con relieve, ranuras, patrón o materiales mixtos (madera + metal, madera + piedra). Elemento de diseño de alto impacto.", pct: 0.13 },
+];
+
+const PISOS_OPTS = [
+  { id: "economico", icon: "◻", label: "Piso sencillo",   tag: "Sin sobrecosto", desc: "Cerámica nacional, concreto pulido o loseta estándar.", ejemplos: "Cerámica 40×40 · Concreto pulido", mult: 0.90 },
+  { id: "medio",     icon: "◼", label: "Piso intermedio", tag: "+10%",           desc: "Porcelanato rectificado, madera laminada.", ejemplos: "Porcelanato 60×60 · Madera laminada", mult: 1.0 },
+  { id: "premium",   icon: "★", label: "Piso premium",    tag: "+22%",           desc: "Mármol natural, madera sólida, porcelanato importado gran formato.", ejemplos: "Mármol Carrara · Madera encino · Porcelanato 120×120", mult: 1.18 },
+];
+
+const COCINA_OPTS = [
+  {
+    id: "basica",  icon: "🍳", label: "Cocina funcional",
+    tag: "Sin sobrecosto",
+    desc: "Gabinetes de melamina, cubierta de granito nacional y tarja de acero inoxidable. Práctica, durable y fácil de mantener.",
+    nota: "La solución más eficiente. Excelente base para renovar a futuro.",
+    ejemplos: "Melamina texturizada · Granito nacional · Tarja sencilla · Herraje básico",
+    mult: 0.92,
+  },
+  {
+    id: "media",   icon: "👨‍🍳", label: "Cocina equipada",
+    tag: "+12%",
+    desc: "Gabinetes de MDF lacado, cubierta de cuarzo o granito importado, herraje semi-europeo con amortiguadores. Iluminación integrada bajo gabinete.",
+    nota: "El punto óptimo entre calidad y precio para la mayoría de los proyectos.",
+    ejemplos: "MDF lacado · Cuarzo o granito importado · Herraje Blum · Iluminación LED integrada",
+    mult: 1.0,
+  },
+  {
+    id: "premium", icon: "🍾", label: "Cocina gourmet",
+    tag: "+28%",
+    desc: "Madera sólida o laca de alta brillo, cubierta Silestone o mármol, herraje europeo de extracción total, isla central y campana decorativa.",
+    nota: "Diseño de interiorismo completo. Requiere coordinación con carpintero especializado.",
+    ejemplos: "Madera sólida / laca · Silestone o mármol · Herraje Blum Tandem · Isla · Campana decorativa",
+    mult: 1.25,
+  },
+];
+
+const BANOS_OPTS = [
+  {
+    id: "estandar", icon: "🚿", label: "Baño estándar",
+    tag: "Sin sobrecosto",
+    desc: "Azulejo de cerámica nacional, mueble sanitario básico (WC, lavabo y regadera), espejo y accesorios de acero inoxidable. Funcional y limpio.",
+    nota: "Acabados sencillos que cumplen perfectamente su función.",
+    ejemplos: "Cerámica 30×60 · WC y lavabo nacionales · Regadera estándar · Espejo básico · Accesorios de acero",
+    mult: 0.92,
+  },
+  {
+    id: "disenado", icon: "🛁", label: "Baño de diseño",
+    tag: "+14%",
+    desc: "Porcelanato rectificado o cantera, mueble sanitario de diseño con lavabo de sobreponer, monomando y regadera tipo lluvia. Nicho empotrado y espejo con iluminación.",
+    nota: "Da una experiencia notablemente más placentera. Popular en recámaras principales.",
+    ejemplos: "Porcelanato 60×60 · Lavabo de sobreponer · Monomando · Regadera lluvia · Nicho · Espejo con luz LED",
+    mult: 1.0,
+  },
+  {
+    id: "spa", icon: "✨", label: "Baño tipo spa / premium",
+    tag: "+28%",
+    desc: "Mármol o piedra natural, mueble flotante a medida, tina de baño independiente o regadera walk-in, herrajes y grifería de importación. Iluminación ambiental y calefacción de piso.",
+    nota: "El nivel más alto de acabado. Requiere diseño de interiores y plomería especializada.",
+    ejemplos: "Mármol o piedra · Mueble flotante · Tina o walk-in · Grifería Hansgrohe / Grohe · Piso calefaccionado",
+    mult: 1.28,
+  },
+];
+
+const PLAFONES_OPTS = [
+  {
+    id: "sin_plafon", icon: "○", label: "Sin plafón — losa vista",
+    tag: "Sin sobrecosto",
+    desc: "La losa de concreto queda expuesta tal cual, sin recubrimiento inferior. Puede dejarse en concreto aparente o pintarse directamente.",
+    nota: "Popular en estética industrial o minimalista. Permite ver instalaciones si se dejan a la vista intencionalmente.",
+    pct: 0.0,
+  },
+  {
+    id: "yeso_liso", icon: "⬜", label: "Plafón de yeso liso",
+    tag: "+4%",
+    desc: "Plafón continuo de yeso adherido o sistema de tablaroca. Acabado liso y uniforme, listo para pintar. El más común en proyectos habitacionales.",
+    nota: "Permite ocultar instalaciones eléctricas e hidrosanitarias. Base para cualquier iluminación integrada.",
+    pct: 0.04,
+  },
+  {
+    id: "detalle", icon: "◈", label: "Plafón con detalle o desnivel",
+    tag: "+9%",
+    desc: "Plafones con remates en desnivel, cornisas, canaletas de luz indirecta o cambios de nivel entre zonas. Da profundidad visual y jerarquía a los espacios.",
+    nota: "Muy efectivo en sala, comedor y recámara principal. Requiere planificación previa con electricista.",
+    pct: 0.09,
+  },
+  {
+    id: "madera_plafon", icon: "🪵", label: "Plafón de madera o lamas",
+    tag: "+14%",
+    desc: "Lamas o tablones de madera natural, MDF enchapado o bambú que cubren total o parcialmente el plafón. Calidez y textura únicas.",
+    nota: "Puede combinarse con losa expuesta en zonas de servicio y madera en áreas sociales.",
+    pct: 0.14,
+  },
+  {
+    id: "mixto_plafon", icon: "◉", label: "Combinación de plafones por zona",
+    tag: "+11%",
+    desc: "Losa expuesta en zonas de servicio y pasillos, yeso liso en habitaciones, y detalle con desnivel o madera en áreas sociales principales.",
+    nota: "La solución más expresiva. Cada espacio tiene su propio carácter en el plafón.",
+    pct: 0.11,
+  },
+];
+
+const ELECTRICOS_OPTS = [
+  {
+    id: "estandar", icon: "○", label: "Eléctrico estándar",
+    tag: "Sin sobrecosto",
+    desc: "Apagadores y contactos de plástico genérico tipo económico, lámparas de techo sencillas (plafón de cristal o pantalla básica). Funcional y ampliamente disponible.",
+    nota: "Adecuado para proyectos de renta o donde el acabado eléctrico no es prioridad.",
+    pct: 0.0,
+  },
+  {
+    id: "disenado", icon: "◼", label: "Eléctrico de diseño",
+    tag: "+5%",
+    desc: "Apagadores y contactos de línea arquitectónica (Leviton Decora, Bticino Axolute o similar), luminarias de diseño en áreas sociales y recámaras principales, iluminación LED integrada.",
+    nota: "Marca notablemente la diferencia en la percepción de calidad del espacio.",
+    pct: 0.05,
+  },
+  {
+    id: "premium_elec", icon: "★", label: "Eléctrico premium",
+    tag: "+12%",
+    desc: "Apagadores y contactos de gama alta (Schneider Odace, Jung, Bticino Living Now), iluminación de carril o empotrada LED en todo el proyecto, lámparas colgantes de diseño en áreas clave.",
+    nota: "Requiere proyecto de iluminación coordinado con el diseño arquitectónico.",
+    pct: 0.12,
+  },
+  {
+    id: "inteligente", icon: "📱", label: "Eléctrico inteligente (domótica)",
+    tag: "+20%",
+    desc: "Apagadores táctiles con control desde app y voz, atenuadores de luz (dimmers), persianas automatizadas y escenas de iluminación programables por zona.",
+    nota: "Se integra con sistemas Alexa, Google Home o Apple HomeKit. Requiere cableado especial desde obra.",
+    pct: 0.20,
+  },
+];
+
+
+const URGENCIA_OPTS = [
+  { id: "normal",  icon: "📅", label: "Sin prisa — ritmo estándar", tag: "Sin sobrecosto", desc: "Cuadrillas regulares, planificación optimizada.", mult: 1.0 },
+  { id: "rapido",  icon: "⚡", label: "Quiero terminar pronto",     tag: "+8%", desc: "Cuadrillas adicionales o turnos extendidos.", mult: 1.08, nota: "Aprox. 30–40% menos tiempo de obra." },
+  { id: "urgente", icon: "🔥", label: "Urgente — plazo muy ajustado", tag: "+18%", desc: "Múltiples frentes simultáneos, turnos nocturnos o fines de semana.", mult: 1.18, nota: "Solo si hay razón de peso." },
+];
+
+const EXTRAS_OPTS = [
+  { id: "cisterna",  icon: "💧", label: "Cisterna y sistema de agua",   desc: "Almacenamiento y presión constante.", pct: 0.025 },
+  { id: "solar",     icon: "☀️", label: "Paneles solares fotovoltaicos", desc: "Reduce el recibo de luz hasta 80%.", pct: 0.045 },
+  { id: "aire",      icon: "❄️", label: "Aire acondicionado mini-split", desc: "Por zona, alta eficiencia.", pct: 0.04 },
+  { id: "jardin",    icon: "🌿", label: "Jardín y área exterior",        desc: "Verde, pavimentos y riego.", pct: 0.03 },
+  { id: "alberca",   icon: "🏊", label: "Alberca o jacuzzi",             desc: "Área acuática con acabados.", pct: 0.07 },
+  { id: "seguridad", icon: "🔒", label: "Sistema de seguridad CCTV",    desc: "Cámaras, alarma y control de acceso.", pct: 0.02 },
+  { id: "smart",     icon: "📱", label: "Domótica básica",               desc: "Iluminación y clima desde el celular.", pct: 0.035 },
+  { id: "cochera",   icon: "🚗", label: "Cochera techada",               desc: "Losa o estructura para 1–2 autos.", pct: 0.04 },
+];
+
+// ─── CALC ─────────────────────────────────────────────────────────────────────
+function calcTotal(d) {
+  if (!d.proyecto || !d.m2) return 0;
+  const base = PROYECTOS.find(p => p.id === d.proyecto)?.base || 12500;
+  const mTerreno   = TERRENO_OPTS.find(p => p.id === d.terreno)?.mult || 1;
+  const mCompl     = COMPLEJIDAD_OPTS.find(p => p.id === d.complejidad)?.mult || 1;
+  const mPiso      = PISOS_OPTS.find(p => p.id === d.pisos)?.mult || 1;
+  const mCocina    = COCINA_OPTS.find(p => p.id === d.cocina)?.mult || 1;
+  const mBanos     = BANOS_OPTS.find(p => p.id === d.banos)?.mult || 1;
+  const mUrgencia  = URGENCIA_OPTS.find(p => p.id === d.urgencia)?.mult || 1;
+
+  // diseño: suma de porcentajes adicionales
+  const pctEspacios    = ESPACIOS_OPTS.find(p => p.id === d.espacios)?.pct || 0;
+  const pctTechos      = TECHOS_OPTS.find(p => p.id === d.techos)?.pct || 0;
+  const pctBio         = BIOCLIMATICA_OPTS.find(p => p.id === d.bioclimatica)?.pct || 0;
+  const pctFachada     = FACHADA_OPTS.find(p => p.id === d.fachada)?.pct || 0;
+  const pctCarpinteria = CARPINTERIA_OPTS.find(p => p.id === d.carpinteria)?.pct || 0;
+  const pctVentanas    = VENTANAS_OPTS.find(p => p.id === d.ventanas)?.pct || 0;
+  const pctAplanados   = APLANADOS_BASE.find(p => p.id === d.aplanados)?.pct || 0;
+  const pctLambrines   = LAMBRINES_OPTS.find(p => p.id === d.lambrines)?.pct || 0;
+  const pctPlafones    = PLAFONES_OPTS.find(p => p.id === d.plafones)?.pct || 0;
+  const pctElectricos  = ELECTRICOS_OPTS.find(p => p.id === d.electricos)?.pct || 0;
+  const pctServicios   = SERVICIOS_OPTS.find(p => p.id === d.servicios)?.pct || 0;
+
+  const multAcabados = (mPiso + mCocina + mBanos) / 3;
+  const costoBase = base * multAcabados * mTerreno * mCompl * mUrgencia * d.m2;
+
+  const disenoPct = pctEspacios + pctTechos + pctBio + pctFachada + pctCarpinteria + pctVentanas + pctAplanados + pctLambrines + pctPlafones + pctElectricos;
+  const costoDiseno = costoBase * disenoPct;
+  const costoServicios = costoBase * pctServicios;
+
+  const sub1 = costoBase + costoDiseno + costoServicios;
+  const costoExtras = (d.extras || []).reduce((a, id) => {
+    const e = EXTRAS_OPTS.find(x => x.id === id);
+    return a + (e ? sub1 * e.pct : 0);
+  }, 0);
+
+  const sub2 = sub1 + costoExtras;
+  const indirectos = sub2 * 0.17;
+  const total = sub2 + indirectos;
+
+  return { costoBase, costoDiseno, costoServicios, costoExtras, indirectos, total, disenoPct, porM2: total / d.m2 };
+}
+
+// ─── COMPONENTS ───────────────────────────────────────────────────────────────
+function ProgressBar({ step }) {
+  const pct = Math.round((step / TOTAL_NAV) * 100);
+  const groupLabel = step <= 4 ? "Datos del proyecto" : step <= 13 ? "Decisiones de diseño" : "Acabados y resultado";
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+        <span style={{ fontSize: 10, color: T.inkMuted, fontWeight: 500, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: FONT_BODY }}>{groupLabel}</span>
+        <span style={{ fontSize: 10, color: T.inkMuted, fontFamily: FONT_MONO, letterSpacing: "0.05em" }}>{String(step).padStart(2,"0")} / {String(TOTAL_NAV).padStart(2,"0")}</span>
+      </div>
+      {/* Bauhaus segmented bar */}
+      <div style={{ display: "flex", gap: 2 }}>
+        {Array.from({ length: TOTAL_NAV }).map((_, i) => (
+          <div key={i} style={{
+            flex: 1, height: 2,
+            background: i < step ? T.moss : i === step ? T.clay : T.hairline,
+            transition: "background 0.3s ease",
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ImpactBadge({ pct, base }) {
+  if (pct === 0) return (
+    <span style={{ fontSize: 10, color: T.inkMuted, border: `1px solid ${T.hairline}`, padding: "2px 8px", letterSpacing: "0.06em", fontFamily: FONT_MONO }}>
+      BASE
+    </span>
+  );
+  const monto = base * pct;
+  return (
+    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+      <span style={{ fontSize: 10, color: T.clay, border: `1px solid ${T.clayBorder}`, padding: "2px 8px", fontFamily: FONT_MONO, letterSpacing: "0.06em" }}>
+        +{(pct * 100).toFixed(0)}%
+      </span>
+      {base > 0 && (
+        <span style={{ fontSize: 10.5, color: T.clay, fontFamily: FONT_MONO }}>
+          +{fmt(monto)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function OptionCard({ opt, selected, onClick, baseForImpact = 0, pctField = "pct" }) {
+  const impact = opt[pctField] || opt.pct || 0;
+  return (
+    <button onClick={onClick} style={{
+      display: "flex", flexDirection: "column",
+      background: selected ? T.mossLight : T.surface,
+      border: `1px solid ${selected ? T.moss : T.hairline}`,
+      borderLeft: `3px solid ${selected ? T.moss : "transparent"}`,
+      padding: "18px 20px 16px",
+      cursor: "pointer", textAlign: "left",
+      transition: "all 0.18s ease",
+      position: "relative", gap: 0,
+      outline: "none",
+    }}>
+      {/* selected mark — Bauhaus geometric */}
+      {selected && (
+        <div style={{
+          position: "absolute", top: 16, right: 16,
+          width: 18, height: 18,
+          background: T.moss,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 10, color: "#fff", fontWeight: 700,
+        }}>✓</div>
+      )}
+      {/* icon — small, restrained */}
+      <div style={{ fontSize: 18, marginBottom: 10, opacity: 0.75 }}>{opt.icon}</div>
+      {/* label + badge row */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+        <span style={{
+          fontSize: 15, fontWeight: 600, lineHeight: 1.2,
+          color: selected ? T.moss : T.ink,
+          fontFamily: FONT_DISPLAY, letterSpacing: "-0.01em",
+        }}>{opt.label}</span>
+        <ImpactBadge pct={impact} base={baseForImpact} />
+      </div>
+      {/* description */}
+      <p style={{ margin: "0 0 0", fontSize: 12.5, color: T.inkSub, lineHeight: 1.7, fontFamily: FONT_BODY }}>{opt.desc}</p>
+      {/* incluye pill */}
+      {opt.incluye && (
+        <div style={{ marginTop: 10, borderTop: `1px solid ${T.hairline}`, paddingTop: 8 }}>
+          <span style={{ fontSize: 10, color: T.moss, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: FONT_BODY }}>Incluye · </span>
+          <span style={{ fontSize: 10.5, color: T.mossMid, fontFamily: FONT_BODY }}>{opt.incluye}</span>
+        </div>
+      )}
+      {/* nota */}
+      {opt.nota && (
+        <p style={{ margin: "8px 0 0", fontSize: 11.5, color: T.clay, lineHeight: 1.5, fontFamily: FONT_BODY, borderLeft: `2px solid ${T.clayBorder}`, paddingLeft: 8 }}>
+          {opt.nota}
+        </p>
+      )}
+      {/* ejemplos */}
+      {opt.ejemplos && (
+        <p style={{ margin: "6px 0 0", fontSize: 11, color: T.inkMuted, lineHeight: 1.5, fontFamily: FONT_MONO, letterSpacing: "0.02em" }}>
+          {opt.ejemplos}
+        </p>
+      )}
+    </button>
+  );
+}
+
+function ExtraToggle({ opt, selected, onClick, baseAmt }) {
+  return (
+    <button onClick={onClick} style={{
+      display: "flex", gap: 12, alignItems: "flex-start",
+      background: selected ? T.mossLight : T.surface,
+      border: `1px solid ${selected ? T.moss : T.hairline}`,
+      borderLeft: `3px solid ${selected ? T.moss : "transparent"}`,
+      padding: "12px 14px", cursor: "pointer", textAlign: "left",
+      transition: "all 0.15s ease", outline: "none",
+    }}>
+      {/* Bauhaus square checkbox */}
+      <div style={{
+        width: 16, height: 16, flexShrink: 0, marginTop: 2,
+        border: `1.5px solid ${selected ? T.moss : T.borderDark}`,
+        background: selected ? T.moss : "transparent",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 9, color: "#fff", fontWeight: 700,
+        transition: "all 0.15s",
+      }}>{selected ? "✓" : ""}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 3, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, color: selected ? T.moss : T.ink, fontFamily: FONT_DISPLAY, fontWeight: 600 }}>{opt.label}</span>
+          {baseAmt > 0 && (
+            <span style={{ fontSize: 10, color: T.clay, fontFamily: FONT_MONO, letterSpacing: "0.04em" }}>≈ {fmt(baseAmt * opt.pct)}</span>
+          )}
+        </div>
+        <p style={{ margin: 0, fontSize: 11.5, color: T.inkSub, lineHeight: 1.5, fontFamily: FONT_BODY }}>{opt.desc}</p>
+      </div>
+    </button>
+  );
+}
+
+function Nav({ onBack, onNext, nextLabel = "Continuar", canNext = true }) {
+  return (
+    <div style={{
+      position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 300,
+      background: "rgba(247,244,239,0.97)", backdropFilter: "blur(12px)",
+      borderTop: `1px solid ${T.hairline}`,
+      padding: "14px 24px",
+      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12,
+    }}>
+      {onBack ? (
+        <button onClick={onBack} style={{
+          padding: "11px 24px",
+          border: `1px solid ${T.hairline}`,
+          background: "transparent", color: T.inkSub,
+          cursor: "pointer", fontSize: 13, fontWeight: 500,
+          fontFamily: FONT_BODY, letterSpacing: "0.03em",
+          transition: "all 0.15s",
+        }}>← Atrás</button>
+      ) : <div />}
+      <button onClick={onNext} disabled={!canNext} style={{
+        padding: "13px 36px",
+        border: "none",
+        background: canNext ? T.moss : T.hairline,
+        color: canNext ? "#fff" : T.inkMuted,
+        cursor: canNext ? "pointer" : "not-allowed",
+        fontSize: 13, fontWeight: 600,
+        fontFamily: FONT_BODY, letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        transition: "all 0.18s",
+        opacity: canNext ? 1 : 0.6,
+      }}>{nextLabel}</button>
+    </div>
+  );
+}
+
+// Budget ticker — Bauhaus floating panel
+function BudgetTicker({ calc }) {
+  if (!calc || !calc.total) return null;
+  return (
+    <div style={{
+      position: "fixed", bottom: 72, right: 20, zIndex: 200,
+      background: T.ink, color: "#F7F4EF",
+      padding: "10px 16px",
+      boxShadow: "4px 4px 0px rgba(58,84,54,0.3)",
+      minWidth: 160, textAlign: "right",
+    }}>
+      <div style={{ fontSize: 9, opacity: 0.55, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 3, fontFamily: FONT_BODY }}>Estimación</div>
+      <div style={{ fontSize: 18, fontWeight: 700, fontFamily: FONT_DISPLAY, letterSpacing: "-0.02em", lineHeight: 1 }}>{fmt(calc.total)}</div>
+      <div style={{ fontSize: 9, opacity: 0.5, marginTop: 3, fontFamily: FONT_MONO }}>{fmt(Math.round(calc.porM2))}/m²</div>
+    </div>
+  );
+}
+
+// ─── RESULTADO ────────────────────────────────────────────────────────────────
+function Resultado({ data, onReset }) {
+  const calc = calcTotal(data);
+  const [exporting, setExporting] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const calc2 = calcTotal(data);
+
+  const handlePDF = async () => {
+    setExporting(true);
+    try {
+      if (!window.jsPDF) {
+        await new Promise((res, rej) => {
+          const s = document.createElement("script");
+          s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+          s.onload = res; s.onerror = rej; document.head.appendChild(s);
+        });
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const W = 210, M = 18;
+      const green = [44, 95, 63], dark = [25, 25, 23], muted = [90, 86, 80], gold = [166, 124, 58];
+
+      // header
+      doc.setFillColor(...green); doc.rect(0, 0, W, 50, "F");
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(19); doc.setFont("helvetica","bold");
+      doc.text("Calculadora de Costos de Construccion", M, 18);
+      doc.setFontSize(9); doc.setFont("helvetica","normal");
+      doc.text("Calculadora de Costos de Construccion | Documento orientativo de referencia", M, 26);
+      const hoy = new Date().toLocaleDateString("es-MX",{year:"numeric",month:"long",day:"numeric"});
+      doc.text(`Generado el ${hoy}`, M, 33);
+      doc.setFontSize(21); doc.setFont("helvetica","bold");
+      doc.text(fmt(calc.total), W-M, 22, {align:"right"});
+      doc.setFontSize(9); doc.setFont("helvetica","normal");
+      doc.text(`${fmt(Math.round(calc.porM2))}/m2 | ${data.m2} m2`, W-M, 30, {align:"right"});
+      doc.text(`Rango: ${fmt(calc.total*.88)} — ${fmt(calc.total*1.20)}`, W-M, 38, {align:"right"});
+
+      let y = 60;
+      const sec = (t) => {
+        doc.setFillColor(...green); doc.rect(M, y, 3, 6, "F");
+        doc.setFontSize(11); doc.setFont("helvetica","bold"); doc.setTextColor(...dark);
+        doc.text(t, M+6, y+5); y += 12;
+      };
+      const row = (l, v, hi=false) => {
+        doc.setFillColor(hi ? 234 : 253, hi ? 243 : 252, hi ? 237 : 250);
+        doc.rect(M, y, W-M*2, 8, "F");
+        doc.setDrawColor(230,224,214); doc.rect(M, y, W-M*2, 8, "S");
+        doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(...muted);
+        doc.text(l, M+4, y+5.5);
+        doc.setFont("helvetica","bold"); doc.setTextColor(...(hi ? green : dark));
+        doc.text(v, W-M-4, y+5.5, {align:"right"}); y += 9;
+      };
+
+      // decisiones
+      const getLabel = (arr, id) => arr.find(x=>x.id===id)?.label || "—";
+      sec("Proyecto y contexto");
+      row("Tipo de proyecto", getLabel(PROYECTOS, data.proyecto));
+      row("Superficie", `${data.m2} m2`);
+      row("Condicion del terreno", getLabel(TERRENO_OPTS, data.terreno));
+      row("Complejidad del diseno", getLabel(COMPLEJIDAD_OPTS, data.complejidad));
+      row("Servicios disponibles", getLabel(SERVICIOS_OPTS, data.servicios));
+
+      y += 4; sec("Decisiones de diseno arquitectonico");
+      row("Espacios y distribucion", getLabel(ESPACIOS_OPTS, data.espacios));
+      row("Techos y cubiertas", getLabel(TECHOS_OPTS, data.techos));
+      row("Estrategia bioclimatica", getLabel(BIOCLIMATICA_OPTS, data.bioclimatica));
+      row("Fachada y exteriores", getLabel(FACHADA_OPTS, data.fachada));
+      row("Carpinteria y puertas", getLabel(CARPINTERIA_OPTS, data.carpinteria));
+      row("Ventanas y vanos", getLabel(VENTANAS_OPTS, data.ventanas));
+      row("Aplanados y muros", getLabel(APLANADOS_BASE, data.aplanados));
+      row("Lambrines interiores", getLabel(LAMBRINES_OPTS, data.lambrines));
+      row("Plafones", getLabel(PLAFONES_OPTS, data.plafones));
+
+      y += 4; sec("Acabados y extras");
+      row("Pisos", getLabel(PISOS_OPTS, data.pisos));
+      row("Cocina", getLabel(COCINA_OPTS, data.cocina));
+      row("Banos", getLabel(BANOS_OPTS, data.banos));
+      row("Electrico y luminarias", getLabel(ELECTRICOS_OPTS, data.electricos));
+      row("Plazo de obra", getLabel(URGENCIA_OPTS, data.urgencia));
+      const extSel = EXTRAS_OPTS.filter(e => data.extras?.includes(e.id));
+      if (extSel.length) row("Extras", extSel.map(e=>e.label).join(", "));
+
+      y += 6; sec("Desglose de costos");
+      row("Construccion base", fmt(calc.costoBase));
+      if (calc.costoDiseno > 0) row(`Sobrecosto de diseno (+${(calc.disenoPct*100).toFixed(0)}%)`, fmt(calc.costoDiseno));
+      if (calc.costoServicios > 0) row("Introduccion de servicios", fmt(calc.costoServicios));
+      if (calc.costoExtras > 0) row("Extras seleccionados", fmt(calc.costoExtras));
+      row("Honorarios, permisos y supervision (17%)", fmt(calc.indirectos));
+      row("TOTAL ESTIMADO", fmt(calc.total), true);
+
+      // nota
+      y += 8;
+      doc.setFillColor(251,244,228); doc.roundedRect(M, y, W-M*2, 24, 3, 3, "F");
+      doc.setDrawColor(...gold); doc.roundedRect(M, y, W-M*2, 24, 3, 3, "S");
+      doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.setTextColor(...gold);
+      doc.text("Nota", M+5, y+7);
+      doc.setFont("helvetica","normal"); doc.setTextColor(107,80,32);
+      const nota = "Esta estimacion incorpora decisiones de diseno especificas que reducen el margen de error. El presupuesto definitivo se obtiene con proyecto ejecutivo completo y cotizaciones de contratistas calificados.";
+      doc.text(doc.splitTextToSize(nota, W-M*2-10), M+5, y+13);
+      doc.setFontSize(8); doc.setTextColor(...muted); doc.setFont("helvetica","italic");
+      doc.text("Calculadora de Costos de Construccion | Solo para uso orientativo — no sustituye un presupuesto formal", W/2, 289, {align:"center"});
+
+      doc.save(`Cotizacion_${data.m2}m2_${hoy.replace(/ /g,"_")}.pdf`);
+    } catch(e) { alert("Error al generar PDF: " + e.message); }
+    setExporting(false);
+  };
+
+  const calc2 = calcTotal(data);
+
+  // impactos de diseño ordenados por monto
+  const impactos = [
+    { label: "Espacios", arr: ESPACIOS_OPTS, id: data.espacios },
+    { label: "Techos", arr: TECHOS_OPTS, id: data.techos },
+    { label: "Bioclimática", arr: BIOCLIMATICA_OPTS, id: data.bioclimatica },
+    { label: "Fachada", arr: FACHADA_OPTS, id: data.fachada },
+    { label: "Carpintería", arr: CARPINTERIA_OPTS, id: data.carpinteria },
+    { label: "Ventanas", arr: VENTANAS_OPTS, id: data.ventanas },
+    { label: "Aplanados y muros", arr: APLANADOS_BASE, id: data.aplanados },
+    { label: "Lambrines", arr: LAMBRINES_OPTS, id: data.lambrines },
+    { label: "Plafones", arr: PLAFONES_OPTS, id: data.plafones },
+    { label: "Eléctrico", arr: ELECTRICOS_OPTS, id: data.electricos },
+  ].map(x => {
+    const opt = x.arr.find(o => o.id === x.id);
+    const pct = opt?.pct || 0;
+    return { label: x.label, optLabel: opt?.label, pct, monto: calc2.costoBase * pct };
+  }).filter(x => x.pct > 0).sort((a,b) => b.monto - a.monto);
+
+  return (
+    <div>
+      {/* ── HERO — editorial total panel ── */}
+      <div style={{ background: T.ink, color: T.bg, padding: "32px 26px", marginBottom: 2, position: "relative", overflow: "hidden" }}>
+        {/* Bauhaus geometric accent */}
+        <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: "100%", background: T.moss, opacity: 0.15 }} />
+        <div style={{ position: "absolute", top: 0, right: 0, width: 3, height: "100%", background: T.moss }} />
+        <p style={{ margin: "0 0 4px", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.5, fontFamily: FONT_BODY }}>
+          Estimación total de inversión
+        </p>
+        <div style={{ fontSize: 42, fontWeight: 700, fontFamily: FONT_DISPLAY, lineHeight: 1, marginBottom: 4, letterSpacing: "-0.03em" }}>
+          {fmt(calc2.total)}
+        </div>
+        <p style={{ margin: "0 0 24px", opacity: 0.45, fontSize: 12, fontFamily: FONT_BODY, letterSpacing: "0.04em" }}>
+          {data.m2} m² · {PROYECTOS.find(p=>p.id===data.proyecto)?.label}
+        </p>
+        {/* Three metric boxes — Bauhaus grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2 }}>
+          {[
+            { label: "Por m²", value: fmt(Math.round(calc2.porM2)), sub: "referencia" },
+            { label: "Optimista −12%", value: fmt(calc2.total * 0.88), sub: "" },
+            { label: "Conservador +20%", value: fmt(calc2.total * 1.20), sub: "" },
+          ].map(m => (
+            <div key={m.label} style={{ background: "rgba(247,244,239,0.07)", padding: "12px 14px", borderTop: "1px solid rgba(247,244,239,0.15)" }}>
+              <div style={{ fontSize: 9, opacity: 0.5, marginBottom: 4, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: FONT_BODY }}>{m.label}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, fontFamily: FONT_DISPLAY, letterSpacing: "-0.01em" }}>{m.value}</div>
+            </div>
+          ))}
+        </div>
+        <p style={{ margin: "14px 0 0", fontSize: 9, opacity: 0.35, fontFamily: FONT_BODY, letterSpacing: "0.06em" }}>
+          MARGEN ±12–20% · REDUCIDO POR DECISIONES DE DISEÑO CAPTURADAS
+        </p>
+      </div>
+
+      {/* ── IMPACTO DE DISEÑO ── */}
+      {impactos.length > 0 && (
+        <div style={{ background: T.surface, borderLeft: `3px solid ${T.clay}`, padding: "20px 22px", marginBottom: 2 }}>
+          <p style={{ margin: "0 0 16px", fontWeight: 600, fontSize: 13, color: T.ink, fontFamily: FONT_DISPLAY, letterSpacing: "0.02em" }}>
+            Decisiones que más impactan el costo
+          </p>
+          {impactos.map((x, i) => (
+            <div key={x.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: `1px solid ${T.hairline}` }}>
+              <div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: T.ink, fontFamily: FONT_DISPLAY }}>{x.label}</span>
+                <span style={{ fontSize: 11, color: T.inkMuted, marginLeft: 8, fontFamily: FONT_BODY }}>— {x.optLabel}</span>
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 600, color: T.clay, fontFamily: FONT_MONO }}>+{fmt(x.monto)}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0 0" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: T.ink, fontFamily: FONT_DISPLAY }}>Total sobrecosto de diseño</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: T.clay, fontFamily: FONT_MONO }}>+{fmt(calc2.costoDiseno)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── DESGLOSE TRANSPARENTE ── */}
+      <div style={{ background: T.surface, borderLeft: `3px solid ${T.moss}`, padding: "22px 22px", marginBottom: 2 }}>
+        <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 13, color: T.ink, fontFamily: FONT_DISPLAY, letterSpacing: "0.02em" }}>Desglose completo y transparente</p>
+        <p style={{ margin: "0 0 20px", fontSize: 12, color: T.inkMuted, lineHeight: 1.6, fontFamily: FONT_BODY }}>Todos los conceptos que conforman el presupuesto. Sin sorpresas.</p>
+
+        {/* bloque 1: construcción directa */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: T.moss, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid ${T.hairline}`, fontFamily: FONT_BODY }}>
+            A — Costo directo de construcción
+          </div>
+          {[
+            { l: "Materiales de construcción (estructura, muros, losa)", v: calc2.costoBase * 0.38, note: "Cemento, acero, block, grava, arena, impermeabilizante, etc." },
+            { l: "Mano de obra (albañiles, fierreros, plomeros, electricistas)", v: calc2.costoBase * 0.32, note: "Incluye prestaciones, IMSS y cuotas patronales." },
+            { l: "Instalaciones hidrosanitarias", v: calc2.costoBase * 0.08, note: "Tubería, muebles de baño, calentador, registros." },
+            { l: "Instalación eléctrica", v: calc2.costoBase * 0.07, note: "Tablero, canalización, cableado, contactos y apagadores." },
+            { l: "Acabados base (pisos, cancelería, aplanados, pintura)", v: calc2.costoBase * 0.15, note: "Según las elecciones realizadas en este configurador." },
+          ].map(r => (
+            <div key={r.l} style={{ padding: "9px 0", borderBottom: `1px solid ${T.hairline}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                <span style={{ fontSize: 12.5, color: T.inkSub, flex: 1, paddingRight: 12, fontFamily: FONT_BODY }}>{r.l}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: T.ink, whiteSpace: "nowrap", fontFamily: FONT_MONO }}>{fmt(r.v)}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 11, color: T.inkMuted, fontFamily: FONT_BODY }}>{r.note}</p>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 0" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: T.ink, fontFamily: FONT_DISPLAY }}>Subtotal construcción directa</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: T.ink, fontFamily: FONT_MONO }}>{fmt(calc2.costoBase)}</span>
+          </div>
+
+        </div>
+
+        {/* bloque 2: decisiones de diseño */}
+        {calc2.costoDiseno > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.moss, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8, paddingBottom: 4, borderBottom: `2px solid ${T.mossLight}` }}>
+              B · Sobrecosto por decisiones de diseño (+{(calc2.disenoPct * 100).toFixed(0)}%)
+            </div>
+            <div style={{ padding: "8px 0", borderBottom: `1px solid ${T.hairline}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                <span style={{ fontSize: 12.5, color: T.inkSub, flex: 1 }}>Materiales y mano de obra especializados para las elecciones de diseño seleccionadas</span>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: T.clay, whiteSpace: "nowrap", paddingLeft: 12 }}>{fmt(calc2.costoDiseno)}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 11, color: T.inkMuted, fontStyle: "italic" }}>Carpintería fina, cancelería especial, materiales de fachada, estrategias bioclimáticas, etc.</p>
+            </div>
+          </div>
+        )}
+
+        {/* bloque 3: servicios */}
+        {calc2.costoServicios > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.moss, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8, paddingBottom: 4, borderBottom: `2px solid ${T.mossLight}` }}>
+              C · Introducción de servicios
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${T.hairline}` }}>
+              <span style={{ fontSize: 12.5, color: T.inkSub }}>Obra civil para introducir servicios faltantes al terreno</span>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: T.ink }}>{fmt(calc2.costoServicios)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* bloque 4: extras */}
+        {calc2.costoExtras > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.moss, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8, paddingBottom: 4, borderBottom: `2px solid ${T.mossLight}` }}>
+              D · Extras seleccionados
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${T.hairline}` }}>
+              <span style={{ fontSize: 12.5, color: T.inkSub }}>Cisterna, paneles solares, A/C, jardinería, alberca, etc.</span>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: T.ink }}>{fmt(calc2.costoExtras)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* bloque 5: indirectos desglosados */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: T.moss, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8, paddingBottom: 4, borderBottom: `2px solid ${T.mossLight}` }}>
+            E · Costos indirectos y profesionales (17% del total)
+          </div>
+          {[
+            { l: "Honorarios de diseño arquitectónico", v: calc2.indirectos * 0.35, note: "Proyecto ejecutivo, planos, especificaciones y dirección de obra." },
+            { l: "Licencias, permisos y derechos municipales", v: calc2.indirectos * 0.18, note: "Licencia de construcción, alineamiento, uso de suelo, conexión a red." },
+            { l: "Supervisión técnica de obra", v: calc2.indirectos * 0.20, note: "Visitas de supervisión, control de calidad y bitácora de obra." },
+            { l: "Estudio de mecánica de suelos (si aplica)", v: calc2.indirectos * 0.05, note: "Recomendado en terrenos con pendiente o suelo blando." },
+            { l: "Cuotas IMSS y prestaciones de ley", v: calc2.indirectos * 0.12, note: "Obligatorias para el contratista. Incluidas en el costo de mano de obra formal." },
+            { l: "Gastos administrativos y fianza de obra", v: calc2.indirectos * 0.10, note: "Contrato, notaría, fianza de cumplimiento y gastos de campo." },
+          ].map(r => (
+            <div key={r.l} style={{ padding: "8px 0", borderBottom: `1px solid ${T.hairline}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                <span style={{ fontSize: 12.5, color: T.inkSub, flex: 1, paddingRight: 12 }}>{r.l}</span>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: T.ink, whiteSpace: "nowrap" }}>{fmt(r.v)}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 11, color: T.inkMuted, fontStyle: "italic" }}>{r.note}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* contratista callout */}
+        {(() => {
+          const subtotalObra = calc2.costoBase + calc2.costoDiseno + calc2.costoServicios + calc2.costoExtras;
+          const contraMin = subtotalObra * 0.10;
+          const contraMax = subtotalObra * 0.18;
+          return (
+            <div style={{ background: "#F0F7FF", border: `1.5px solid #93C5FD`, borderRadius: 0, padding: "16px 18px", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>🏗</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#1D4ED8", letterSpacing: "0.07em", textTransform: "uppercase" }}>
+                  ¿Cuánto cobra el contratista?
+                </span>
+              </div>
+              <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "#1E3A5F", lineHeight: 1.7 }}>
+                El contratista o constructor cobra una utilidad sobre el costo directo de obra —
+                generalmente entre el <strong>10% y el 18%</strong> dependiendo del tamaño del proyecto,
+                la región y su nivel de especialización. Esto se negocia por separado al firmar el contrato.
+              </p>
+              <div style={{ display: "flex", gap: 12 }}>
+                <div style={{ flex: 1, background: "#DBEAFE", borderRadius: 8, padding: "10px 14px" }}>
+                  <div style={{ fontSize: 10, color: "#1D4ED8", fontWeight: 700, marginBottom: 3, letterSpacing: "0.06em" }}>UTILIDAD MÍNIMA (10%)</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#1D4ED8", fontFamily: "FONT_DISPLAY" }}>{fmt(contraMin)}</div>
+                  <div style={{ fontSize: 10, color: "#3B82F6", marginTop: 2 }}>Proyectos sencillos o volumen alto</div>
+                </div>
+                <div style={{ flex: 1, background: "#BFDBFE", borderRadius: 8, padding: "10px 14px" }}>
+                  <div style={{ fontSize: 10, color: "#1E40AF", fontWeight: 700, marginBottom: 3, letterSpacing: "0.06em" }}>UTILIDAD MÁXIMA (18%)</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#1E40AF", fontFamily: "FONT_DISPLAY" }}>{fmt(contraMax)}</div>
+                  <div style={{ fontSize: 10, color: "#2563EB", marginTop: 2 }}>Proyectos complejos o residenciales</div>
+                </div>
+              </div>
+              <p style={{ margin: "10px 0 0", fontSize: 11, color: "#4B6A8A", fontStyle: "italic", lineHeight: 1.6 }}>
+                Esta utilidad ya está considerada dentro del costo total estimado. Se presenta de forma transparente para que puedas negociar con conocimiento.
+              </p>
+            </div>
+          );
+        })()}
+
+        {/* bloque 6: vicios ocultos e imprevistos */}
+        <div style={{ background: T.clayLight, border: `1px dashed ${T.clayBorder}`, borderRadius: 0, padding: "12px 14px", marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: T.clay, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>
+            F · ¿Qué NO está incluido? (a considerar aparte)
+          </div>
+          {[
+            { l: "Vicios ocultos y contingencias de obra", note: "Imprevistos estructurales, suelo inesperado o cambios de proyecto. Recomendamos reservar un 8–10% adicional." },
+            { l: "Mobiliario, decoración y equipamiento", note: "Muebles, cortinas, lámparas, electrodomésticos y arte no forman parte del presupuesto de obra." },
+            { l: "Ajuste por inflación de materiales", note: "Los precios de materiales pueden variar durante la obra. Las cotizaciones formales tienen vigencia limitada." },
+            { l: "Conexión de servicios (CONAGUA, CFE, gas)", note: "Las cuotas de conexión definitiva a las redes públicas se pagan directamente a cada organismo." },
+          ].map(r => (
+            <div key={r.l} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: T.clay, marginBottom: 2 }}>⚠ {r.l}</div>
+              <p style={{ margin: 0, fontSize: 11.5, color: "#7A5C20", lineHeight: 1.55 }}>{r.note}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* total final */}
+        <div style={{ background: T.mossLight, border: `1px solid ${T.moss}`, borderRadius: 0, padding: "14px 16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.moss }}>TOTAL ESTIMADO</div>
+              <div style={{ fontSize: 11, color: T.mossMid, marginTop: 2 }}>Incluye construcción + diseño + indirectos</div>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: T.moss, fontFamily: "FONT_DISPLAY" }}>{fmt(calc2.total)}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* nota */}
+      <div style={{ background: T.clayLight, border: `1px solid ${T.clayBorder}`, borderRadius: 0, padding: "14px 16px", marginBottom: 18 }}>
+        <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: T.clay }}>📋 Siguiente paso</p>
+        <p style={{ margin: 0, fontSize: 12.5, color: "#6B5020", lineHeight: 1.7 }}>
+          Con estas decisiones ya podemos orientar el diseño hacia tu visión y presupuesto real. Envíanos tu selección y te contactamos para dar seguimiento a tu proyecto.
+        </p>
+      </div>
+
+      {/* ── ENVIAR AL ARQUITECTO ─────────────────────────────────── */}
+      {(() => {
+        const WA_NUMBER = "524422264948"; // WhatsApp del despacho
+        const EMAIL     = "jogorro16@gmail.com"; // Correo del despacho
+
+        const getLabel = (arr, id) => arr?.find(x => x.id === id)?.label || "—";
+        const resumen = [
+          `📐 *COTIZACIÓN DE PROYECTO*`,
+          `Nombre: ${contactName || "—"}`,
+          `Teléfono: ${contactPhone || "—"}`,
+          ``,
+          `*Proyecto:* ${getLabel(PROYECTOS, data.proyecto)} · ${data.m2} m²`,
+          `*Terreno:* ${getLabel(TERRENO_OPTS, data.terreno)}`,
+          `*Diseño:* ${getLabel(COMPLEJIDAD_OPTS, data.complejidad)}`,
+          `*Espacios:* ${getLabel(ESPACIOS_OPTS, data.espacios)}`,
+          `*Techos:* ${getLabel(TECHOS_OPTS, data.techos)}`,
+          `*Bioclimática:* ${getLabel(BIOCLIMATICA_OPTS, data.bioclimatica)}`,
+          `*Fachada:* ${getLabel(FACHADA_OPTS, data.fachada)}`,
+          `*Cancelería:* ${getLabel(CANCELERIA_OPTS, data.canceleria)}`,
+          `*Ventanas:* ${getLabel(VENTANAS_OPTS, data.ventanas)}`,
+          `*Aplanados:* ${getLabel(APLANADOS_BASE, data.aplanados)}`,
+          `*Lambrines:* ${getLabel(LAMBRINES_OPTS, data.lambrines)}`,
+          `*Plafones:* ${getLabel(PLAFONES_OPTS, data.plafones)}`,
+          `*Pisos:* ${getLabel(PISOS_OPTS, data.pisos)}`,
+          `*Cocina:* ${getLabel(COCINA_OPTS, data.cocina)}`,
+          `*Baños:* ${getLabel(BANOS_OPTS, data.banos)}`,
+          `*Eléctrico:* ${getLabel(ELECTRICOS_OPTS, data.electricos)}`,
+          `*Plazo:* ${getLabel(URGENCIA_OPTS, data.urgencia)}`,
+          ``,
+          `💰 *TOTAL ESTIMADO: ${fmt(calc2.total)}*`,
+          `📏 Costo por m²: ${fmt(Math.round(calc2.porM2))}`,
+          `📊 Rango: ${fmt(calc2.total * 0.88)} – ${fmt(calc2.total * 1.20)}`,
+        ].join("\n");
+
+        const emailBody = resumen.replace(/\*/g, "");
+        const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(resumen)}`;
+        const mailUrl = `mailto:${EMAIL}?subject=${encodeURIComponent("Calculadora de Costos – " + (contactName || "Cliente"))}&body=${encodeURIComponent(emailBody)}`;
+
+        return (
+          <div style={{ background: T.surface, border: `1.5px solid ${T.hairline}`, borderRadius: 0, padding: "20px 20px", marginBottom: 14 }}>
+            <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: T.ink, fontFamily: "FONT_DISPLAY" }}>
+              ✉️ Enviar mi selección al arquitecto
+            </p>
+            <p style={{ margin: "0 0 16px", fontSize: 12.5, color: T.inkSub, lineHeight: 1.6 }}>
+              Déjanos tus datos y envíanos tu cotización. Te contactaremos para dar seguimiento a tu proyecto.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+              <input
+                type="text" placeholder="Tu nombre completo"
+                value={contactName} onChange={e => setContactName(e.target.value)}
+                style={{ padding: "11px 14px", borderRadius: 0, border: `1.5px solid ${T.hairline}`, fontSize: 14, color: T.ink, background: T.bg, outline: "none", fontFamily: "inherit" }}
+              />
+              <input
+                type="tel" placeholder="Tu teléfono (WhatsApp)"
+                value={contactPhone} onChange={e => setContactPhone(e.target.value)}
+                style={{ padding: "11px 14px", borderRadius: 0, border: `1.5px solid ${T.hairline}`, fontSize: 14, color: T.ink, background: T.bg, outline: "none", fontFamily: "inherit" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <a href={waUrl} target="_blank" rel="noopener noreferrer" style={{
+                flex: 1, padding: "13px", borderRadius: 0, border: "none",
+                background: "#25D366", color: "#fff",
+                fontSize: 14, fontWeight: 700, textDecoration: "none",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                boxShadow: "0 4px 14px rgba(37,211,102,0.3)",
+              }}>
+                <span style={{ fontSize: 18 }}>💬</span> WhatsApp
+              </a>
+              <a href={mailUrl} style={{
+                flex: 1, padding: "13px", borderRadius: 0,
+                border: `1.5px solid ${T.hairline}`,
+                background: T.surface, color: T.ink,
+                fontSize: 14, fontWeight: 700, textDecoration: "none",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              }}>
+                <span style={{ fontSize: 18 }}>📧</span> Correo
+              </a>
+            </div>
+          </div>
+        );
+      })()}
+
+
+        width: "100%", padding: "14px", borderRadius: 0, border: "none",
+        background: exporting ? T.hairline : T.moss, color: exporting ? T.inkMuted : "#fff",
+        cursor: exporting ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 700, marginBottom: 10,
+        boxShadow: exporting ? "none" : "0 4px 14px rgba(44,95,63,0.28)", transition: "all 0.2s",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+      }}>{exporting ? "⏳ Generando PDF..." : "⬇ Descargar reporte en PDF"}</button>
+
+      <button onClick={onReset} style={{
+        width: "100%", padding: "13px", borderRadius: 0,
+        border: `1.5px solid ${T.moss}`,
+        background: T.mossLight,
+        color: T.moss,
+        cursor: "pointer", fontSize: 14, fontWeight: 700,
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        transition: "all 0.2s",
+      }}>
+        🔄 Regenerar cotización
+      </button>
+    </div>
+  );
+}
+
+// ─── APP ──────────────────────────────────────────────────────────────────────
+const initData = { proyecto: null, m2: 120, terreno: null, complejidad: null, servicios: null, espacios: null, techos: null, bioclimatica: null, fachada: null, carpinteria: null, ventanas: null, aplanados: null, lambrines: null, plafones: null, pisos: null, cocina: null, banos: null, electricos: null, urgencia: null, extras: [] };
+
+export default function App() {
+  const [step, setStep] = useState(0);
+  const [data, setData] = useState(initData);
+  const topRef = useRef(null);
+
+  const set = (k, v) => setData(d => ({ ...d, [k]: v }));
+  const toggleExtra = id => set("extras", data.extras.includes(id) ? data.extras.filter(x => x !== id) : [...data.extras, id]);
+  const scroll = () => setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 40);
+  const next = () => { setStep(s => s + 1); scroll(); };
+  const back = () => { setStep(s => s - 1); scroll(); };
+  const reset = () => { setStep(0); setData(initData); scroll(); };
+
+  const si = STEPS[step];
+  const calc = calcTotal(data);
+  // base for impact display = costoBase using current data, approx
+  const baseAmt = data.m2 && data.proyecto ? ((PROYECTOS.find(p=>p.id===data.proyecto)?.base||12500) * data.m2) : 0;
+
+  const optionStep = (opts, key, question) => (
+    <>
+      {question && <p style={{ margin: "0 0 20px", fontSize: 13, color: T.inkSub, lineHeight: 1.75, fontFamily: FONT_BODY }}>{question}</p>}
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {opts.map(o => <OptionCard key={o.id} opt={o} selected={data[key] === o.id} onClick={() => set(key, o.id)} baseForImpact={baseAmt} />)}
+      </div>
+      <Nav onBack={back} onNext={next} canNext={!!data[key]} />
+    </>
+  );
+
+  return (
+    <div style={{ minHeight: "100vh", background: T.bg, fontFamily: FONT_BODY, color: T.ink }}>
+
+      {/* ── TOPBAR ── editorial strip */}
+      <div style={{
+        background: T.surface,
+        borderBottom: `1px solid ${T.hairline}`,
+        padding: "14px 24px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        position: "sticky", top: 0, zIndex: 100,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* Bauhaus mark — simple square */}
+          <div style={{ width: 24, height: 24, background: T.moss, flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: T.ink, fontFamily: FONT_DISPLAY, letterSpacing: "0.04em" }}>
+              Calculadora de Costos de Construcción
+            </div>
+            <div style={{ fontSize: 10, color: T.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: FONT_BODY }}>
+              Estimación paramétrica · MXN
+            </div>
+          </div>
+        </div>
+        {step < TOTAL_NAV && calc?.total > 0 && (
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.moss, fontFamily: FONT_DISPLAY, letterSpacing: "-0.02em", lineHeight: 1 }}>
+              {fmt(calc.total)}
+            </div>
+            <div style={{ fontSize: 9, color: T.inkMuted, marginTop: 3, fontFamily: FONT_MONO }}>
+              {fmt(Math.round(calc.porM2))}/m²
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div ref={topRef} style={{ maxWidth: 600, margin: "0 auto", padding: "32px 20px 120px" }}>
+
+        {/* Progress */}
+        {step < TOTAL_NAV && <ProgressBar step={step} />}
+
+        {/* Step header — editorial large number + title */}
+        {step < TOTAL_NAV && (
+          <div style={{ marginBottom: 28, display: "flex", gap: 20, alignItems: "flex-start" }}>
+            <div style={{
+              fontFamily: FONT_DISPLAY, fontSize: 52, fontWeight: 700,
+              color: T.hairline, lineHeight: 1, letterSpacing: "-0.04em",
+              flexShrink: 0, userSelect: "none", marginTop: -4,
+            }}>
+              {String(step + 1).padStart(2, "0")}
+            </div>
+            <div style={{ paddingTop: 6 }}>
+              <h2 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 600, fontFamily: FONT_DISPLAY, color: T.ink, letterSpacing: "-0.01em", lineHeight: 1.2 }}>
+                {si.title}
+              </h2>
+              <p style={{ margin: 0, fontSize: 13, color: T.inkSub, fontFamily: FONT_BODY, lineHeight: 1.5 }}>
+                {si.subtitle}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 0 – proyecto */}
+        {step === 0 && (<>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {PROYECTOS.map(p => <OptionCard key={p.id} opt={p} selected={data.proyecto === p.id} onClick={() => set("proyecto", p.id)} baseForImpact={0} />)}
+          </div>
+          <Nav onNext={next} canNext={!!data.proyecto} />
+        </>)}
+
+        {/* 1 – superficie */}
+        {step === 1 && (<>
+          <div style={{ background: T.surface, border: `1px solid ${T.hairline}`, padding: "24px 22px", marginBottom: 2 }}>
+            <p style={{ margin: "0 0 20px", fontSize: 13, color: T.inkSub, lineHeight: 1.75, fontFamily: FONT_BODY }}>
+              Incluye <strong>todas las áreas techadas</strong>: cuartos, pasillos, baños, cocina, cochera techada. No cuenta jardines ni exteriores descubiertos.
+            </p>
+            {/* Large editorial number */}
+            <div style={{ textAlign: "center", marginBottom: 24 }}>
+              <div style={{ fontSize: 72, fontWeight: 700, fontFamily: FONT_DISPLAY, color: T.ink, lineHeight: 1, letterSpacing: "-0.04em" }}>
+                {data.m2}
+              </div>
+              <div style={{ fontSize: 11, color: T.inkMuted, marginTop: 6, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: FONT_BODY }}>
+                metros cuadrados
+              </div>
+            </div>
+            <input type="range" min={40} max={2000} step={10} value={data.m2}
+              onChange={e => set("m2", Number(e.target.value))}
+              style={{ width: "100%", accentColor: T.moss, cursor: "pointer" }}
+            />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: T.inkMuted, marginTop: 6, fontFamily: FONT_MONO }}>
+              <span>40</span><span>2,000</span>
+            </div>
+          </div>
+          {/* Reference note — Japones ma (negative space) style */}
+          <div style={{ borderLeft: `2px solid ${T.moss}`, paddingLeft: 14, marginTop: 14, marginBottom: 4 }}>
+            <p style={{ margin: 0, fontSize: 12.5, color: T.inkSub, lineHeight: 1.75, fontFamily: FONT_BODY }}>
+              {data.m2 < 80 ? "Departamento o cabaña compacta — 1 a 2 recámaras." :
+               data.m2 < 150 ? "Casa familiar estándar — 2 a 3 recámaras, sala, comedor y 2 baños." :
+               data.m2 < 250 ? "Casa amplia con estudio — 3 a 4 recámaras y cochera." :
+               data.m2 < 500 ? "Residencia generosa con área de servicio y jardín." :
+               "Proyecto de gran escala — residencia plus o local comercial."}
+            </p>
+          </div>
+          <Nav onBack={back} onNext={next} canNext />
+        </>)}
+
+        {/* 2 – terreno */}
+        {step === 2 && optionStep(TERRENO_OPTS, "terreno", "La condición del terreno afecta directamente la cimentación, movimiento de tierras y costo final. Sé lo más preciso posible.")}
+
+        {/* 3 – complejidad */}
+        {step === 3 && optionStep(COMPLEJIDAD_OPTS, "complejidad", "La forma del proyecto impacta en cimbra, estructuras especiales y tiempo de obra. Piensa en la idea que tienes en mente.")}
+
+        {/* 4 – servicios */}
+        {step === 4 && optionStep(SERVICIOS_OPTS, "servicios", "Indica la situación actual del terreno. Cada servicio faltante implica una obra de introducción adicional.")}
+
+        {/* 5 – espacios */}
+        {step === 5 && optionStep(ESPACIOS_OPTS, "espacios", "La distribución interior define la estructura, circulaciones y experiencia de habitar el espacio.")}
+
+        {/* 6 – techos */}
+        {step === 6 && optionStep(TECHOS_OPTS, "techos", "El tipo de cubierta impacta en estructura, impermeabilización y el aspecto visual desde el exterior e interior.")}
+
+        {/* 7 – bioclimática */}
+        {step === 7 && optionStep(BIOCLIMATICA_OPTS, "bioclimatica", "Las estrategias bioclimáticas definen qué tan confortable es tu espacio sin depender de equipos mecánicos.")}
+
+        {/* 8 – fachada */}
+        {step === 8 && optionStep(FACHADA_OPTS, "fachada", "La fachada es la primera impresión de tu proyecto. Define la identidad visual exterior y el mantenimiento a futuro.")}
+
+        {/* 9 – carpintería */}
+        {step === 9 && optionStep(CARPINTERIA_OPTS, "carpinteria", "Las puertas interiores definen el carácter espacial y la relación entre ambientes. Un detalle que muchos no anticipan.")}
+
+        {/* 10 – ventanas */}
+        {step === 10 && optionStep(VENTANAS_OPTS, "ventanas", "La relación entre muros y vanos define cómo entra la luz, la ventilación y la conexión visual con el exterior.")}
+
+        {/* 11 – aplanados */}
+        {step === 11 && optionStep(APLANADOS_BASE, "aplanados", "Define el material y acabado de tus muros según zona. Cada opción describe qué va en habitaciones, áreas comunes y espacios especiales.")}
+
+        {/* 12 – lambrines */}
+        {step === 12 && optionStep(LAMBRINES_OPTS, "lambrines", "Los lambrines son paneles de carpintería que se colocan en muros — pueden dividir espacios, crear calidez y ser un elemento de diseño importante.")}
+
+        {/* 13 – plafones */}
+        {step === 13 && optionStep(PLAFONES_OPTS, "plafones", "El plafón define cómo se ve y se siente la altura del espacio. Es también donde vive la iluminación y las instalaciones ocultas.")}
+
+        {/* 14 – pisos */}
+        {step === 14 && optionStep(PISOS_OPTS, "pisos", "El piso es el elemento que más superficie visual ocupa en tus interiores. Elige según tus prioridades.")}
+
+        {/* 15 – cocina */}
+        {step === 15 && optionStep(COCINA_OPTS, "cocina", "Los gabinetes, cubierta y acabados de cocina son de los elementos más usados en el día a día. Elige el nivel que mejor refleja tu visión.")}
+
+        {/* 16 – baños */}
+        {step === 16 && optionStep(BANOS_OPTS, "banos", "Los baños son espacios de uso diario donde los acabados se sienten más de cerca. Define el nivel de confort y diseño que quieres.")}
+
+        {/* 17 – eléctrico */}
+        {step === 17 && optionStep(ELECTRICOS_OPTS, "electricos", "Apagadores, contactos y luminarias definen la experiencia eléctrica del proyecto. Un detalle que muchos deciden al último — pero que conviene definir desde obra.")}
+
+        {/* 18 – urgencia */}
+        {step === 18 && optionStep(URGENCIA_OPTS, "urgencia", "El plazo de construcción afecta la mano de obra. Acelerar implica más cuadrillas o turnos adicionales.")}
+
+        {/* 19 – extras */}
+        {step === 19 && (<>
+          <p style={{ margin: "0 0 16px", fontSize: 13, color: T.inkSub, lineHeight: 1.7 }}>Selecciona lo que quisieras incluir. El costo aproximado de cada uno se calcula sobre tu subtotal actual.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 8 }}>
+            {EXTRAS_OPTS.map(e => <ExtraToggle key={e.id} opt={e} selected={data.extras.includes(e.id)} onClick={() => toggleExtra(e.id)} baseAmt={baseAmt} />)}
+          </div>
+          <p style={{ margin: "10px 0 0", fontSize: 11, color: T.inkMuted, textAlign: "center" }}>{data.extras.length === 0 ? "Puedes continuar sin seleccionar nada." : `${data.extras.length} extra${data.extras.length > 1 ? "s" : ""} seleccionado${data.extras.length > 1 ? "s" : ""}.`}</p>
+          <Nav onBack={back} onNext={next} nextLabel="Ver mi presupuesto →" canNext />
+        </>)}
+
+        {/* 20 – resultado */}
+        {step === 20 && (<>
+          <div style={{ marginBottom: 28, display: "flex", gap: 20, alignItems: "flex-start" }}>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 52, fontWeight: 700, color: T.hairline, lineHeight: 1, letterSpacing: "-0.04em", flexShrink: 0, marginTop: -4, userSelect: "none" }}>
+              ✦
+            </div>
+            <div style={{ paddingTop: 6 }}>
+              <h2 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 600, fontFamily: FONT_DISPLAY, color: T.ink, letterSpacing: "-0.01em" }}>Tu presupuesto estimado</h2>
+              <p style={{ margin: 0, fontSize: 13, color: T.inkSub, fontFamily: FONT_BODY }}>Basado en todas tus decisiones de diseño</p>
+            </div>
+          </div>
+          <Resultado data={data} onReset={reset} />
+        </>)}
+      </div>
+
+      <style>{`
+        /* ── Garet & HK Grotesk via Bunny Fonts (GDPR-friendly CDN) ── */
+        @import url('https://fonts.bunny.net/css?family=dm-sans:400,500,600,700|jetbrains-mono:400,500&display=swap');
+
+        /* Garet — geometric Bauhaus-inspired display font */
+        @font-face {
+          font-family: 'Garet';
+          src: url('https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/plusjakartasans/PlusJakartaSans%5Bwght%5D.ttf') format('truetype');
+          font-weight: 400 800;
+          font-display: swap;
+        }
+
+        /* HK Grotesk via Fontsource */
+        @font-face {
+          font-family: 'HK Grotesk';
+          src: url('https://cdn.jsdelivr.net/npm/@fontsource/plus-jakarta-sans@5.0.8/files/plus-jakarta-sans-latin-400-normal.woff2') format('woff2');
+          font-weight: 400;
+          font-display: swap;
+        }
+        @font-face {
+          font-family: 'HK Grotesk';
+          src: url('https://cdn.jsdelivr.net/npm/@fontsource/plus-jakarta-sans@5.0.8/files/plus-jakarta-sans-latin-600-normal.woff2') format('woff2');
+          font-weight: 600;
+          font-display: swap;
+        }
+        @font-face {
+          font-family: 'HK Grotesk';
+          src: url('https://cdn.jsdelivr.net/npm/@fontsource/plus-jakarta-sans@5.0.8/files/plus-jakarta-sans-latin-700-normal.woff2') format('woff2');
+          font-weight: 700;
+          font-display: swap;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-font-smoothing: antialiased; }
+        body { background: #F7F4EF; }
+
+        /* Range slider — minimal Bauhaus style */
+        input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; width: 100%; }
+        input[type=range]::-webkit-slider-runnable-track {
+          background: #DDD8CF; height: 2px; border-radius: 0;
+        }
+        input[type=range]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 18px; height: 18px;
+          background: #3A5436;
+          border-radius: 0;
+          margin-top: -8px;
+          cursor: pointer;
+        }
+        input[type=range]::-moz-range-track { background: #DDD8CF; height: 2px; }
+        input[type=range]::-moz-range-thumb { width: 18px; height: 18px; background: #3A5436; border: none; border-radius: 0; cursor: pointer; }
+
+        button { font-family: inherit; }
+        input, textarea { font-family: inherit; }
+
+        /* Subtle hover states */
+        button:hover { filter: brightness(0.96); }
+        a:hover { opacity: 0.85; }
+      `}</style>
+
+      `}</style>
+    </div>
+  );
+}
